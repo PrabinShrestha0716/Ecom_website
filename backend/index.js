@@ -23,7 +23,16 @@ const pool = DATABASE_URL
     })
   : null;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://rangilabroo.netlify.app",
+      "http://localhost:5173",
+    ],
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/health", (req, res) => {
