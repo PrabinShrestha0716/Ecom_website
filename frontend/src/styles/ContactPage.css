@@ -1,0 +1,12 @@
+.contact-page {
+  padding: 2rem;
+}
+
+.contact-page .contact-placeholder {
+  border: 1px dashed #ccc;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 720px;
+  margin-top: 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+}

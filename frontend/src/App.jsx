@@ -1,29 +1,80 @@
 import { useEffect, useState } from "react";
 import "./styles/App.css";
 import logoImage from "./assets/logo.png";
+import imlyJholImage from "./products/ImlyJhol.png";
+import lapsiJholImage from "./products/Lapsi.png";
+import lapsiCandyImage from "./products/lapsiCandy.png";
+import KhattuImage from "./products/Khattu.png";
+import momoPauImage from "./products/momoPau.png";
 import AdminPage from "./pages/AdminPage";
 import AboutPage from "./pages/AboutPage";
 import CartPage from "./pages/CartPage";
+import ContactPage from "./pages/ContactPage";
 import HomePage from "./pages/HomePage";
 
 const products = [
   {
     id: 1,
-    name: "Rangila Brooo Titaura",
+    name: "Mango Jhol",
     price: 5.99,
     description: "A bold, chewy titaura with sweet, sour, and spicy notes.",
+    imageUrl: "",
   },
   {
     id: 2,
-    name: "Spicy Mango Titaura",
+    name: "Imly Jhol",
     price: 6.99,
     description: "Tangy mango with a warm chili kick for snack lovers.",
+    imageUrl: imlyJholImage,
   },
   {
     id: 3,
-    name: "Sweet & Sour Mix",
+    name: "Nibuwa Jhol",
     price: 7.99,
     description: "A colorful mix made for sharing, gifting, and cravings.",
+    imageUrl: "",
+  },
+  {
+    id: 4,
+    name: "Lapsi Jhol",
+    price: 6.99,
+    description: "Tangy mango with a warm chili kick for snack lovers.",
+    imageUrl: imlyJholImage,
+  },
+  {
+    id: 5,
+    name: "Lapsi Candy",
+    price: 6.99,
+    description: "Tangy mango with a warm chili kick for snack lovers.",
+    imageUrl: lapsiCandyImage,
+  },
+  {
+    id: 6,
+    name: "Khattu",
+    price: 6.99,
+    description: "Tangy mango with a warm chili kick for snack lovers.",
+    imageUrl: KhattuImage,
+  },
+  {
+    id: 7,
+    name: "MoMo pau",
+    price: 6.99,
+    description: "Tangy mango with a warm chili kick for snack lovers.",
+    imageUrl: momoPauImage,
+  },
+  {
+    id: 8,
+    name: "Bechi Nunilo",
+    price: 6.99,
+    description: "Tangy mango with a warm chili kick for snack lovers.",
+    imageUrl: "",
+  },
+  {
+    id: 9,
+    name: "Rangila",
+    price: 6.99,
+    description: "Tangy mango with a warm chili kick for snack lovers.",
+    imageUrl: "",
   },
 ];
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
@@ -194,7 +245,13 @@ function App() {
               >
                 About Me
               </button>
-            </>
+              {/* <button
+                className={activePage === "contact" ? "active" : ""}
+                onClick={() => setActivePage("contact")}
+              >
+                Contact
+              </button> */}
+              </>
           )}
         </nav>
       </header>
@@ -220,6 +277,7 @@ function App() {
           />
         )}
         {activePage === "about" && <AboutPage />}
+        {activePage === "contact" && <ContactPage />}
         {activePage === "admin" && (
           <AdminPage
             orders={orders}
@@ -229,6 +287,21 @@ function App() {
           />
         )}
       </main>
+
+      <footer className="site-footer">
+        <div>
+          <p className="eyebrow">Follow the flavor</p>
+          <h3>Rangila Brooo</h3>
+          <p>Bold Nepali snack vibes, crafted for sharing and gifting.</p>
+        </div>
+        <a
+          href="https://www.instagram.com/rangila_brooo?igsh=N3A5ZTF6bzllcHA3"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Instagram
+        </a>
+      </footer>
     </div>
   );
 }
