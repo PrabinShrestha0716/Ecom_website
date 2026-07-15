@@ -28,6 +28,19 @@
   padding: 18px;
 }
 
+.cart-item-image-block {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.cart-item-image {
+  border-radius: 14px;
+  height: 64px;
+  object-fit: cover;
+  width: 64px;
+}
+
 .cart-item h3,
 .checkout-form h2,
 .order-summary h2,
@@ -119,13 +132,48 @@
   background: #991b1b;
 }
 
-.checkout-form {
-  display: grid;
-  gap: 12px;
-  padding: 22px;
+  .confirmation-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
 }
 
-.checkout-form label {
+.checkout-header {
+  display: grid;
+  gap: 10px;
+}
+
+.checkout-card {
+  background: #fff7ed;
+  border: 1px solid #f3d2a2;
+  border-radius: 16px;
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+}
+
+.checkout-section {
+  display: grid;
+  gap: 14px;
+}
+
+.checkout-section h3 {
+  color: #8a2f0a;
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.section-note {
+  color: #70401f;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.checkout-form label,
+.shipping-summary-card label,
+.shipping-option span {
   color: #8a2f0a;
   font-weight: 800;
 }
@@ -134,10 +182,10 @@
 .checkout-form select,
 .checkout-form textarea {
   border: 1px solid #f3d2a2;
-  border-radius: 8px;
+  border-radius: 10px;
   color: #3b1f0f;
   font: inherit;
-  padding: 11px 12px;
+  padding: 13px 14px;
   width: 100%;
 }
 
@@ -157,6 +205,43 @@
   display: grid;
   gap: 14px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.shipping-summary-card {
+  background: #fff7ed;
+  border: 1px solid #f3d2a2;
+  border-radius: 14px;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 18px;
+}
+
+.shipping-summary-header {
+  display: grid;
+  gap: 6px;
+}
+
+.shipping-summary-description,
+.shipping-summary-detail {
+  color: #70401f;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.shipping-option {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #f3d2a2;
+  border-radius: 12px;
+  color: #3b1f0f;
+  display: flex;
+  gap: 12px;
+  padding: 14px 12px;
+}
+
+.shipping-option input {
+  accent-color: #8a2f0a;
 }
 
 .checkout-field-grid div {
@@ -208,9 +293,11 @@
 
 .checkout-form button {
   background: #dc2626;
+  border-radius: 10px;
   color: #fff;
   font-weight: 700;
-  padding: 12px 15px;
+  padding: 14px 16px;
+  transition: background 0.2s ease;
 }
 
 .checkout-form button:hover {
