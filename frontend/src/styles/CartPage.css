@@ -138,8 +138,6 @@
     flex-wrap: wrap;
   }
 
-}
-
 .checkout-header {
   display: grid;
   gap: 10px;
