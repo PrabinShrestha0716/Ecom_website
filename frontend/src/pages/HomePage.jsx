@@ -26,21 +26,6 @@ function HomePage({ products, cart, addToCart, updateQuantity }) {
         </div>
       </section>
 
-      <section className="hero">
-        <div className="hero-product2">
-          <img src={heroImage2} alt="Featured Rangila Brooo product" />
-        </div>
-
-        <div>
-          <p className="eyebrow">THE RANGILA EXPERIENCE</p>
-          <h1>Where nostalgia
-meets bold flavor.</h1>
-          <p className="hero-copy">
-            Rich, handcrafted titaura made for those who appreciate authentic ingredients, unforgettable flavor, and the joy of sharing something truly unique.
-          </p>
-        </div>
-      </section>
-
       <section className="section">
         <div className="section-heading">
           <p className="eyebrow">Shop</p>
