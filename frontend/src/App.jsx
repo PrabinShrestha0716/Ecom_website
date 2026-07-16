@@ -5,6 +5,10 @@ import imlyJholImage from "./products/ImlyJhol.png";
 import lapsiJholImage from "./products/Lapsi.png";
 import lapsiCandyImage from "./products/lapsiCandy.png";
 import KhattuImage from "./products/Khattu.png";
+import BechiImage from "./products/bechi.png";
+import MangoJholImage from "./products/mango.png";
+import NimbuImage from "./products/nimbu.png";
+import RangilaImage from "./products/Rangila.png";
 import momoPauImage from "./products/momoPau.png";
 import AdminPage from "./pages/AdminPage";
 import AboutPage from "./pages/AboutPage";
@@ -15,67 +19,70 @@ import HomePage from "./pages/HomePage";
 const products = [
   {
     id: 1,
-    name: "Mango Jhol",
-    price: 5.99,
-    description: "A bold, chewy titaura with sweet, sour, and spicy notes.",
-    imageUrl: "",
-  },
-  {
-    id: 2,
-    name: "Imly Jhol",
-    price: 6.99,
-    description: "Tangy mango with a warm chili kick for snack lovers.",
-    imageUrl: imlyJholImage,
-  },
-  {
-    id: 3,
-    name: "Nibuwa Jhol",
-    price: 7.99,
-    description: "A colorful mix made for sharing, gifting, and cravings.",
-    imageUrl: "",
-  },
-  {
-    id: 4,
-    name: "Lapsi Jhol",
-    price: 6.99,
-    description: "Tangy mango with a warm chili kick for snack lovers.",
-    imageUrl: imlyJholImage,
-  },
-  {
-    id: 5,
     name: "Lapsi Candy",
     price: 6.99,
     description: "Tangy mango with a warm chili kick for snack lovers.",
     imageUrl: lapsiCandyImage,
   },
   {
-    id: 6,
+    id: 2,
     name: "Khattu",
     price: 6.99,
     description: "Tangy mango with a warm chili kick for snack lovers.",
     imageUrl: KhattuImage,
   },
   {
-    id: 7,
-    name: "MoMo pau",
-    price: 6.99,
-    description: "Tangy mango with a warm chili kick for snack lovers.",
-    imageUrl: momoPauImage,
-  },
-  {
-    id: 8,
+    id: 3,
     name: "Bechi Nunilo",
     price: 6.99,
     description: "Tangy mango with a warm chili kick for snack lovers.",
-    imageUrl: "",
+    imageUrl: BechiImage,
   },
   {
-    id: 9,
+    id: 4,
     name: "Rangila",
     price: 6.99,
     description: "Tangy mango with a warm chili kick for snack lovers.",
-    imageUrl: "",
+    imageUrl: RangilaImage,
   },
+
+    {
+    id: 5,
+    name: "Mango Jhol",
+    price: 7.99,
+    description: "A bold, chewy titaura with sweet, sour, and spicy notes.",
+    imageUrl: MangoJholImage,
+  },
+  {
+    id: 6,
+    name: "Imly Jhol",
+    price: 7.99,
+    description: "Tangy mango with a warm chili kick for snack lovers.",
+    imageUrl: imlyJholImage,
+  },
+  {
+    id: 7,
+    name: "Nibuwa Jhol",
+    price: 7.99,
+    description: "A colorful mix made for sharing, gifting, and cravings.",
+    imageUrl: NimbuImage,
+  },
+  {
+    id: 8,
+    name: "Lapsi Jhol",
+    price: 7.99,
+    description: "Tangy mango with a warm chili kick for snack lovers.",
+    imageUrl: imlyJholImage,
+  },
+
+    {
+    id: 9,
+    name: "MoMo pau",
+    price: 8.99,
+    description: "Tangy mango with a warm chili kick for snack lovers.",
+    imageUrl: momoPauImage,
+  },
+
 ];
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 

@@ -886,73 +886,76 @@ async function submitOrder(paymentIntent) {
           <button onClick={goHome}>Continue Shopping</button>
         </div>
       ) : (
-<div className="cart-layout">
+<div className={`cart-layout${isCheckoutOpen ? " checkout-active" : ""}`}>
   {/* 1. Cart items */}
-  <div className="cart-list">
-    {cart.map((item) => (
-      <article className="cart-item" key={item.id}>
-        <div className="cart-item-image-block">
-          {item.imageUrl ? (
-            <img
-              className="cart-item-image"
-              src={item.imageUrl}
-              alt={item.name}
-            />
-          ) : null}
+  {!isCheckoutOpen && (
+    <div className="cart-list">
+      {cart.map((item) => (
+        <article className="cart-item" key={item.id}>
+          <div className="cart-item-image-block">
+            {item.imageUrl ? (
+              <img
+                className="cart-item-image"
+                src={item.imageUrl}
+                alt={item.name}
+              />
+            ) : null}
 
-          <div>
-            <h3>{item.name}</h3>
-            <p>${item.price.toFixed(2)} each</p>
+            <div>
+              <h3>{item.name}</h3>
+              <p>${item.price.toFixed(2)} each</p>
+            </div>
           </div>
-        </div>
 
-        <div className="quantity-controls">
-          <button onClick={() => updateQuantity(item.id, -1)}>-</button>
-          <span>{item.quantity}</span>
-          <button onClick={() => updateQuantity(item.id, 1)}>+</button>
-        </div>
+          <div className="quantity-controls">
+            <button onClick={() => updateQuantity(item.id, -1)}>-</button>
+            <span>{item.quantity}</span>
+            <button onClick={() => updateQuantity(item.id, 1)}>+</button>
+          </div>
 
-        <strong>${(item.price * item.quantity).toFixed(2)}</strong>
+          <strong>${(item.price * item.quantity).toFixed(2)}</strong>
 
-        <button
-          className="ghost-button"
-          onClick={() => removeFromCart(item.id)}
-        >
-          Remove
-        </button>
-      </article>
-    ))}
-  </div>
-
-  {/* 2. Order summary */}
-  <aside className="order-summary">
-    <h2>Order Summary</h2>
-
-    {renderShippingSummary()}
-
-    <div className="summary-row">
-      <span>Subtotal</span>
-      <strong>${total.toFixed(2)}</strong>
+          <button
+            className="ghost-button"
+            onClick={() => removeFromCart(item.id)}
+          >
+            Remove
+          </button>
+        </article>
+      ))}
     </div>
+  )}
 
-    <div className="summary-row">
-      <span>{shippingInfo.label}</span>
-      <strong>${shippingInfo.cost.toFixed(2)}</strong>
-    </div>
+  {!isCheckoutOpen && (
+    <aside className="order-summary">
+      <h2>Order Summary</h2>
 
-    <div className="summary-row total-row">
-      <span>Total</span>
-      <strong>${orderTotal.toFixed(2)}</strong>
-    </div>
+      {renderShippingSummary()}
 
-    <button
-      className="checkout-button"
-      disabled={orderSubmitted}
-      onClick={openCheckout}
-    >
-      {orderSubmitted ? "Order Processed" : "Checkout"}
-    </button>
-  </aside>
+      <div className="summary-row">
+        <span>Subtotal</span>
+        <strong>${total.toFixed(2)}</strong>
+      </div>
+
+      <div className="summary-row">
+        <span>{shippingInfo.label}</span>
+        <strong>${shippingInfo.cost.toFixed(2)}</strong>
+      </div>
+
+      <div className="summary-row total-row">
+        <span>Total</span>
+        <strong>${orderTotal.toFixed(2)}</strong>
+      </div>
+
+      <button
+        className="checkout-button"
+        disabled={orderSubmitted}
+        onClick={openCheckout}
+      >
+        {orderSubmitted ? "Order Processed" : "Checkout"}
+      </button>
+    </aside>
+  )}
 
   {/* 3. Customer information or payment method */}
   {isCheckoutOpen && (

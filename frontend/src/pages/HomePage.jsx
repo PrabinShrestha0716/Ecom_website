@@ -1,13 +1,11 @@
 import packageImage from "../assets/package.png";
 import Momopau from "../products/momoPau.png";
-import JholPau from "../products/jholpau.png";
 
 
 import "../styles/HomePage.css";
 
 function HomePage({ products, cart, addToCart, updateQuantity }) {
-  const heroImage = products[0]?.imageUrl || Momopau;
-  const heroImage2 = products[0]?.imageUrl || JholPau;
+  const heroImage = Momopau;
 
 
   return (

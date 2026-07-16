@@ -503,4 +503,23 @@
     order: 3;
     width: 100%;
   }
+
+  .cart-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .quantity-controls {
+    gap: 6px;
+  }
+
+  .quantity-controls button {
+    height: 30px;
+    width: 30px;
+    font-size: 0.95rem;
+  }
+
+  .quantity-controls span {
+    min-width: 18px;
+  }
 }
