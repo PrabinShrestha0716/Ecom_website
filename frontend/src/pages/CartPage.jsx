@@ -218,8 +218,8 @@ const STORE_STATE = "Texas";
 const STORE_ZIP = "76021";
 const DELIVERY_SHIPPING = {
   method: "delivery",
-  cost: 8,
-  label: "Delivery ($8.00)",
+  cost: 8.99,
+  label: "Delivery ($8.99)",
 };
 const PICKUP_SHIPPING = {
   method: "pickup",
@@ -588,7 +588,7 @@ async function submitOrder(paymentIntent) {
         <div className="shipping-summary-header">
           <h3>Pickup or Delivery</h3>
           <p className="shipping-summary-description">
-            Choose pickup to collect in-store, or delivery for a flat $8 shipping fee.
+            Choose pickup to collect, or delivery for a flat $9 shipping fee.
           </p>
         </div>
 
@@ -601,7 +601,7 @@ async function submitOrder(paymentIntent) {
             onChange={() => setShippingMethod("delivery")}
           />
           <span>
-            Delivery <strong>+$8.00</strong>
+            Delivery <strong>+$8.99.00</strong>
           </span>
         </label>
 
