@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -213,6 +213,7 @@ function PaymentStep({
 
 const STRIPE_PROMISE = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const GEOAPIFY_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY;
 const STORE_PICKUP_ADDRESS = "1400 Sierra Spring Dr";
 const STORE_CITY = "Bedford";
 const STORE_STATE = "Texas";
@@ -307,7 +308,63 @@ function CartPage({
     phone: "",
   });
   const [checkoutError, setCheckoutError] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+useEffect(() => {
+  const address = checkoutForm.streetAddress.trim();
 
+  if (address.length < 3) {
+    setAddressSuggestions([]);
+    return;
+  }
+
+  if (!GEOAPIFY_KEY) {
+    console.error("Geoapify API key is missing.");
+    return;
+  }
+
+  const controller = new AbortController();
+
+  const timer = setTimeout(async () => {
+    try {
+      const params = new URLSearchParams({
+        text: address,
+        filter: "countrycode:us",
+        limit: "5",
+        format: "json",
+        apiKey: GEOAPIFY_KEY,
+      });
+
+      const response = await fetch(
+        `https://api.geoapify.com/v1/geocode/autocomplete?${params}`,
+        {
+          signal: controller.signal,
+        }
+      );
+
+      const data = await response.json();
+
+      console.log("Geoapify response:", data);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message || `Geoapify request failed: ${response.status}`
+        );
+      }
+
+      setAddressSuggestions(data.results || []);
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        console.error("Geoapify autocomplete error:", error);
+        setAddressSuggestions([]);
+      }
+    }
+  }, 500);
+
+  return () => {
+    clearTimeout(timer);
+    controller.abort();
+  };
+}, [checkoutForm.streetAddress]);
   const shippingInfo =
     shippingMethod === "pickup" ? PICKUP_SHIPPING : DELIVERY_SHIPPING;
   const orderTotal = total + shippingInfo.cost;
@@ -506,16 +563,58 @@ async function submitOrder(paymentIntent) {
     return (
       <>
         <label htmlFor="full-address">Street Address</label>
-        <input
-          id="full-address"
-          required
-          placeholder="Street address, P.O. box, company name, c/o"
-          value={checkoutForm.streetAddress}
-          onChange={(event) =>
-            updateCheckoutField("streetAddress", event.target.value)
-          }
-        />
+<div className="address-wrapper">
 
+<input
+    id="full-address"
+    required
+    placeholder="Street address"
+    value={checkoutForm.streetAddress}
+    autoComplete="off"
+    onChange={(e)=>
+        updateCheckoutField("streetAddress",e.target.value)
+    }
+/>
+
+{addressSuggestions.length > 0 && (
+
+<div className="address-dropdown">
+
+{addressSuggestions.map((address)=>(
+<div
+className="address-item"
+key={address.place_id || address.formatted }
+onClick={()=>{
+    setCheckoutForm({
+        ...checkoutForm,
+
+        streetAddress:
+            `${address.housenumber ?? ""} ${address.street ?? ""}`,
+
+        city:
+            address.city ?? "",
+
+        state:
+            address.state ?? "",
+
+        zipcode:
+            address.postcode ?? "",
+    });
+
+    setAddressSuggestions([]);
+}}
+>
+
+{address.formatted}
+
+</div>
+))}
+
+</div>
+
+)}
+
+</div>
         <label htmlFor="apartment">Apartment, Suite, Unit</label>
         <input
           id="apartment"
