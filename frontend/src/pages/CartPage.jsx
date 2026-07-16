@@ -601,7 +601,9 @@ async function submitOrder(paymentIntent) {
             onChange={() => setShippingMethod("delivery")}
           />
           <span>
-            Delivery <strong>+$8.99.00</strong>
+            Delivery <strong>+$8.99
+              
+            </strong>
           </span>
         </label>
 
