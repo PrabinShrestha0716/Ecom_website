@@ -7,6 +7,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import "../styles/CartPage.css";
+import logoImage from "../assets/logo.png";
 
 function PaymentStep({
   clientSecret,
@@ -758,13 +759,16 @@ async function submitOrder(paymentIntent) {
     const itemRows = order.items
       .map(
         (item) =>
-          `<div class="item-row"><span>${escapeHtml(item.name)} x ${item.quantity}</span><strong>$${(
-            item.price * item.quantity
-          ).toFixed(2)}</strong></div>`
+          `<tr>
+            <td>${escapeHtml(item.name)}</td>
+            <td>${item.quantity}</td>
+            <td>$${item.price.toFixed(2)}</td>
+            <td>$${(item.price * item.quantity).toFixed(2)}</td>
+          </tr>`
       )
       .join("");
 
-    const createdAt = order.createdAt || new Date().toLocaleString();
+    const createdAt = new Date(order.createdAt || Date.now()).toLocaleString();
 
     return `<!doctype html>
 <html>
@@ -773,68 +777,107 @@ async function submitOrder(paymentIntent) {
     <title>Invoice #${order.id || "N/A"}</title>
     <style>
       * { box-sizing: border-box; }
-      body { color: #3b1f0f; font-family: Arial, sans-serif; margin: 0; padding: 32px; }
-      .invoice { border: 1px solid #f3d2a2; border-radius: 8px; margin: 0 auto; max-width: 720px; padding: 28px; }
-      header { align-items: flex-start; border-bottom: 1px solid #f3d2a2; display: flex; justify-content: space-between; padding-bottom: 18px; }
-      h1, h2 { color: #8a2f0a; margin: 0; }
-      section { border-bottom: 1px solid #f3d2a2; padding: 18px 0; }
-      p { line-height: 1.5; margin: 4px 0; }
-      .item-row, .total-row { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; }
-      .grand-total { color: #8a2f0a; font-size: 1.2rem; }
-      .invoice-actions { margin-bottom: 20px; display: flex; justify-content: flex-end; }
-      button { background: #dc2626; border: 0; border-radius: 8px; color: #fff; cursor: pointer; font-size: 1rem; padding: 10px 15px; }
-      @media print { body { padding: 0; } .invoice { border: 0; } button { display: none; } }
+      body { background: #f4f4f4; color: #1f1f1f; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 32px; }
+      .invoice-wrapper { margin: 0 auto; max-width: 820px; }
+      .invoice { background: #fff; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.08); overflow: hidden; }
+      .invoice-body { padding: 36px 40px; }
+      .topbar { align-items: center; display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid #e8e8e8; padding-bottom: 24px; }
+      .brand { display: flex; align-items: center; gap: 14px; }
+      .brand img { width: 72px; height: auto; border-radius: 12px; }
+      .brand-details { line-height: 1.3; }
+      .brand-details strong { display: block; font-size: 1.05rem; color: #1f1f1f; }
+      .brand-details span { color: #6b7280; font-size: 0.95rem; }
+      .invoice-meta { text-align: right; }
+      .invoice-meta strong { display: block; font-size: 1.2rem; color: #111827; }
+      .invoice-meta p { margin: 6px 0 0; color: #6b7280; font-size: 0.95rem; }
+      .section-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 28px; }
+      .section-card { background: #f9fafb; border-radius: 14px; padding: 20px; }
+      .section-card h2 { margin: 0 0 12px; color: #111827; font-size: 1rem; }
+      .section-card p { margin: 4px 0; color: #4b5563; font-size: 0.95rem; }
+      table { border-collapse: collapse; margin-top: 30px; width: 100%; }
+      table thead th { padding: 16px 14px; text-align: left; font-size: 0.95rem; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
+      table tbody tr td { padding: 16px 14px; border-bottom: 1px solid #f3f4f6; font-size: 0.95rem; color: #111827; }
+      table tbody tr:last-child td { border-bottom: none; }
+      .totals { margin-top: 28px; width: 100%; max-width: 360px; margin-left: auto; }
+      .totals .total-row { display: flex; justify-content: space-between; padding: 12px 0; color: #374151; }
+      .totals .grand-total { font-size: 1.15rem; font-weight: 700; color: #111827; }
+      .notes { margin-top: 28px; color: #6b7280; font-size: 0.95rem; line-height: 1.7; }
+      .print-button { margin: 18px 0 0; display: inline-flex; padding: 12px 18px; border-radius: 10px; background: #dc2626; color: #fff; border: none; cursor: pointer; font-size: 0.95rem; }
+      @media print { body { padding: 0; background: #fff; } .invoice-wrapper { box-shadow: none; } .print-button { display: none; } }
     </style>
   </head>
   <body>
-    <div class="invoice-actions">
-      <button onclick="window.print()">Print / Save as PDF</button>
+    <div class="invoice-wrapper">
+      <main class="invoice">
+        <div class="invoice-body">
+          <div class="topbar">
+            <div class="brand">
+              <img src="${logoImage}" alt="Rangila Brooo logo" />
+              <div class="brand-details">
+                <strong>Rangila Brooo</strong>
+                <span>Bedford, Texas</span>
+              </div>
+            </div>
+            <div class="invoice-meta">
+              <strong>Invoice</strong>
+              <p>Invoice #: ${order.id || "N/A"}</p>
+              <p>Date: ${escapeHtml(createdAt)}</p>
+            </div>
+          </div>
+
+          <div class="section-grid">
+            <div class="section-card">
+              <h2>Bill To</h2>
+              <p>${escapeHtml(order.customer.fullName)}</p>
+              <p>${escapeHtml(order.customer.phone)}</p>
+              <p>${escapeHtml(order.customer.streetAddress)}</p>
+              ${order.customer.apartment ? `<p>${escapeHtml(order.customer.apartment)}</p>` : ""}
+              <p>${escapeHtml(order.customer.city)}, ${escapeHtml(order.customer.state)} ${escapeHtml(order.customer.zipcode)}</p>
+            </div>
+            <div class="section-card">
+              <h2>Shipping</h2>
+              <p>${escapeHtml(order.shipping.label)}</p>
+              <p>Method: ${escapeHtml(order.shipping.method)}</p>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemRows}
+            </tbody>
+          </table>
+
+          <div class="totals">
+            <div class="total-row">
+              <span>Subtotal</span>
+              <span>$${order.subtotal.toFixed(2)}</span>
+            </div>
+            <div class="total-row">
+              <span>Shipping</span>
+              <span>$${order.shipping.cost.toFixed(2)}</span>
+            </div>
+            <div class="total-row grand-total">
+              <span>Total</span>
+              <span>$${order.total.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div class="notes">
+            <p>Thank you for your purchase! Please keep this invoice for your records.</p>
+          </div>
+
+          <button class="print-button" onclick="window.print()">Print / Save as PDF</button>
+        </div>
+      </main>
     </div>
-    <main class="invoice">
-      <header>
-        <div>
-          <h1>Rangila Brooo</h1>
-          <p>Invoice</p>
-        </div>
-        <div>
-          <strong>Order #${order.id || "N/A"}</strong>
-          <p>${escapeHtml(createdAt)}</p>
-        </div>
-      </header>
-
-      <section>
-        <h2>Customer</h2>
-        <p>${escapeHtml(order.customer.fullName)}</p>
-        <p>${escapeHtml(order.customer.phone)}</p>
-      </section>
-
-      <section>
-        <h2>Shipping Address</h2>
-        <p>${escapeHtml(order.customer.streetAddress)}</p>
-        ${order.customer.apartment ? `<p>${escapeHtml(order.customer.apartment)}</p>` : ""}
-        <p>${escapeHtml(order.customer.city)}, ${escapeHtml(order.customer.state)} ${escapeHtml(order.customer.zipcode)}</p>
-      </section>
-
-      <section>
-        <h2>Items</h2>
-        ${itemRows}
-      </section>
-
-      <section>
-        <div class="total-row">
-          <span>Subtotal</span>
-          <strong>$${order.subtotal.toFixed(2)}</strong>
-        </div>
-        <div class="total-row">
-          <span>Shipping</span>
-          <strong>${escapeHtml(order.shipping.label)}</strong>
-        </div>
-        <div class="total-row grand-total">
-          <span>Total</span>
-          <strong>$${order.total.toFixed(2)}</strong>
-        </div>
-      </section>
-    </main>
   </body>
 </html>`;
   }
