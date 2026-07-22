@@ -59,7 +59,9 @@ function PaymentStep({
 
       if (submitResult.error) {
         onPaymentError(
-          submitResult.error.message || "Please check your payment details."
+          formatPaymentError(
+            submitResult.error.message || "Please check your payment details."
+          )
         );
         return;
       }
@@ -95,7 +97,7 @@ function PaymentStep({
       });
 
       if (error) {
-        onPaymentError(error.message || "Payment could not be completed.");
+        onPaymentError(formatPaymentError(error.message || "Payment could not be completed."));
         return;
       }
 
@@ -126,9 +128,11 @@ function PaymentStep({
       console.error("Stripe payment error:", error);
 
       onPaymentError(
-        error instanceof Error
-          ? error.message
-          : "An unexpected payment error occurred."
+        formatPaymentError(
+          error instanceof Error
+            ? error.message
+            : "An unexpected payment error occurred."
+        )
       );
     } finally {
       onPaymentProcessing(false);
@@ -280,6 +284,29 @@ const US_STATES = [
   "Wisconsin",
   "Wyoming",
 ];
+
+function formatPaymentError(error) {
+  const message =
+    typeof error === "string"
+      ? error
+      : error?.message || "Payment could not be completed.";
+
+  const normalizedMessage = message.toLowerCase();
+
+  if (normalizedMessage.includes("known test card")) {
+    return "This payment method can't verified";
+  }
+
+  if (normalizedMessage.includes("card was declined")) {
+    return "Your card was declined.";
+  }
+
+  if (normalizedMessage.includes("payment cannot be processed")) {
+    return "Your payment could not be processed right now. Please try again in a moment.";
+  }
+
+  return message;
+}
 
 function CartPage({
   cart,
