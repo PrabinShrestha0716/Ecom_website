@@ -249,14 +249,19 @@ app.post("/api/admin/login", (req, res) => {
   const sessionId = crypto.randomBytes(32).toString("hex");
   adminSessions.set(sessionId, now + ADMIN_SESSION_TTL_MS);
   res.setHeader("Set-Cookie", buildSessionCookie(sessionId, ADMIN_SESSION_TTL_MS));
-  res.json({ success: true });
+  // The frontend and API are deployed on different sites. Browsers such as
+  // Safari and Firefox can reject the cookie as a third-party cookie, so also
+  // return the opaque session id for use as a Bearer token.
+  res.json({ success: true, sessionToken: sessionId });
 });
 
 app.get("/api/admin/session", requireOwner, (req, res) => res.json({ authenticated: true }));
 
 app.post("/api/admin/logout", (req, res) => {
-  const sessionId = readCookie(req, "admin_session");
-  if (sessionId) adminSessions.delete(sessionId);
+  const bearerSession = readBearerSession(req);
+  const cookieSession = readCookie(req, "admin_session");
+  if (bearerSession) adminSessions.delete(bearerSession);
+  if (cookieSession) adminSessions.delete(cookieSession);
   res.setHeader("Set-Cookie", buildSessionCookie("", 0));
   res.json({ success: true });
 });
@@ -309,14 +314,28 @@ app.listen(PORT, () => {
 });
 
 function requireOwner(req, res, next) {
-  const sessionId = readCookie(req, "admin_session");
+  const bearerSession = readBearerSession(req);
+  const cookieSession = readCookie(req, "admin_session");
+  const sessionId = [bearerSession, cookieSession].find(
+    (candidate) => candidate && adminSessions.get(candidate) > Date.now()
+  );
   const expiresAt = sessionId ? adminSessions.get(sessionId) : 0;
   if (!expiresAt || expiresAt <= Date.now()) {
-    if (sessionId) adminSessions.delete(sessionId);
+    if (bearerSession) adminSessions.delete(bearerSession);
+    if (cookieSession) adminSessions.delete(cookieSession);
     return res.status(401).json({ error: "Owner access required." });
   }
 
   next();
+}
+
+function readBearerSession(req) {
+  const authorization = String(req.headers.authorization || "");
+  if (authorization.startsWith("Bearer ")) {
+    return authorization.slice(7).trim();
+  }
+
+  return "";
 }
 
 function validateOrder(order) {

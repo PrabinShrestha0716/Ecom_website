@@ -94,6 +94,14 @@ const products = [
 
 ];
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const ADMIN_SESSION_KEY = "admin_session_token";
+
+function adminAuthHeaders(headers = {}) {
+  const sessionToken = sessionStorage.getItem(ADMIN_SESSION_KEY);
+  return sessionToken
+    ? { ...headers, Authorization: `Bearer ${sessionToken}` }
+    : headers;
+}
 
 function App() {
   const [activePage, setActivePage] = useState("home");
@@ -203,6 +211,10 @@ function App() {
       return false;
     }
 
+    const result = await response.json();
+    if (result.sessionToken) {
+      sessionStorage.setItem(ADMIN_SESSION_KEY, result.sessionToken);
+    }
     setIsOwner(true);
     await loadOrders();
     return true;
@@ -212,7 +224,9 @@ function App() {
     await fetch(`${API_URL}/api/admin/logout`, {
       method: "POST",
       credentials: "include",
+      headers: adminAuthHeaders(),
     });
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
     setIsOwner(false);
     setOrders([]);
     setActivePage("home");
@@ -222,13 +236,16 @@ function App() {
   async function checkOwnerSession() {
     const response = await fetch(`${API_URL}/api/admin/session`, {
       credentials: "include",
+      headers: adminAuthHeaders(),
     });
+    if (!response.ok) sessionStorage.removeItem(ADMIN_SESSION_KEY);
     setIsOwner(response.ok);
   }
 
   async function loadOrders() {
     const response = await fetch(`${API_URL}/api/admin/orders`, {
       credentials: "include",
+      headers: adminAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -255,7 +272,7 @@ function App() {
       method: "PUT",
       credentials: "include",
       headers: {
-        "Content-Type": "application/json",
+        ...adminAuthHeaders({ "Content-Type": "application/json" }),
       },
       body: JSON.stringify({ quantity }),
     });
@@ -267,6 +284,7 @@ function App() {
     const response = await fetch(`${API_URL}/api/admin/orders/${orderId}`, {
       method: "DELETE",
       credentials: "include",
+      headers: adminAuthHeaders(),
     });
 
     if (!response.ok) {
