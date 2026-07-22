@@ -45,10 +45,8 @@ const stripe = process.env.STRIPE_SECRET_KEY
 const pool = DATABASE_URL
   ? new Pool({
       connectionString: DATABASE_URL,
-      ssl:
-        process.env.DATABASE_SSL === "true"
-          ? { rejectUnauthorized: process.env.DATABASE_SSL_ALLOW_SELF_SIGNED !== "true" }
-          : undefined,
+      ssl: {
+          rejectUnauthorized: false }
     })
   : null;
 
