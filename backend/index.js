@@ -28,13 +28,24 @@ const pool = DATABASE_URL
     })
   : null;
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://rangilabroo.netlify.app",
+  "https://rangilabroo.com",
+  "https://www.rangilabroo.com",
+];
+
 app.use(
   cors({
-    origin: [
-      "https://rangilabroo.netlify.app",
-      "http://localhost:5173",
-    ],
-    methods: ["GET", "POST"],
+    origin(origin, callback) {
+      // Allows requests such as Render health checks with no Origin header
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked origin: ${origin}`));
+    },
+    methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
