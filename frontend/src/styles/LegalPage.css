@@ -1,0 +1,43 @@
+.legal-page {
+  padding: 2rem 0 3rem;
+}
+
+.legal-intro {
+  color: #7a3b16;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin-top: 1rem;
+  max-width: 780px;
+}
+
+.legal-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(185, 116, 43, 0.16);
+  border-radius: 20px;
+  box-shadow: 0 14px 40px rgba(86, 43, 10, 0.08);
+  margin-top: 1.5rem;
+  padding: 2rem;
+}
+
+.legal-section + .legal-section {
+  border-top: 1px solid rgba(185, 116, 43, 0.14);
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+}
+
+.legal-section h2 {
+  color: #8a2f0a;
+  font-size: 1.1rem;
+  margin: 0 0 0.7rem;
+}
+
+.legal-section p,
+.legal-section li {
+  color: #6d4223;
+  line-height: 1.7;
+}
+
+.legal-section ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}

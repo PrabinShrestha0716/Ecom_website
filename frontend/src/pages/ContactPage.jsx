@@ -9,8 +9,8 @@ function ContactPage() {
       </div>
       <div className="contact-placeholder">
         <p>
-          This is the contact page. Add your contact details, form, or social
-          links here.
+          Rangila Bro is based in Bedford, Texas, United States. For questions,
+          orders, or support, reach out at support@rangilabro.com.
         </p>
       </div>
     </section>

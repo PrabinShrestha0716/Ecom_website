@@ -15,6 +15,7 @@ import AboutPage from "./pages/AboutPage";
 import CartPage from "./pages/CartPage";
 import ContactPage from "./pages/ContactPage";
 import HomePage from "./pages/HomePage";
+import LegalPage from "./pages/LegalPage";
 
 const products = [
   {
@@ -250,7 +251,7 @@ function App() {
                 className={activePage === "about" ? "active" : ""}
                 onClick={() => setActivePage("about")}
               >
-                About Me
+                Explore
               </button>
               {/* <button
                 className={activePage === "contact" ? "active" : ""}
@@ -285,6 +286,10 @@ function App() {
         )}
         {activePage === "about" && <AboutPage />}
         {activePage === "contact" && <ContactPage />}
+        {activePage === "privacy-policy" && <LegalPage pageType="privacy-policy" />}
+        {activePage === "terms-of-service" && <LegalPage pageType="terms-of-service" />}
+        {activePage === "refund-policy" && <LegalPage pageType="refund-policy" />}
+        {activePage === "shipping-policy" && <LegalPage pageType="shipping-policy" />}
         {activePage === "admin" && (
           <AdminPage
             orders={orders}
@@ -301,13 +306,27 @@ function App() {
           <h3>Rangila Brooo</h3>
           <p>Bold Nepali snack vibes, crafted for sharing and gifting.</p>
         </div>
-        <a
-          href="https://www.instagram.com/rangila_brooo?igsh=N3A5ZTF6bzllcHA3"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Instagram
-        </a>
+        <div className="footer-links">
+          <a href="#" onClick={(event) => { event.preventDefault(); setActivePage("privacy-policy"); }}>
+            Privacy Policy
+          </a>
+          <a href="#" onClick={(event) => { event.preventDefault(); setActivePage("terms-of-service"); }}>
+            Terms of Service
+          </a>
+          <a href="#" onClick={(event) => { event.preventDefault(); setActivePage("refund-policy"); }}>
+            Refund Policy
+          </a>
+          <a href="#" onClick={(event) => { event.preventDefault(); setActivePage("shipping-policy"); }}>
+            Shipping Policy
+          </a>
+          <a
+            href="https://www.instagram.com/rangila_brooo?igsh=N3A5ZTF6bzllcHA3"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Instagram
+          </a>
+        </div>
       </footer>
     </div>
   );

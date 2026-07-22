@@ -122,6 +122,13 @@ main {
   text-decoration: none;
 }
 
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 .page h1 {
   color: #8a2f0a;
   font-size: clamp(2.2rem, 5vw, 4.8rem);
@@ -171,5 +178,9 @@ main {
   .site-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .footer-links {
+    justify-content: flex-start;
   }
 }
