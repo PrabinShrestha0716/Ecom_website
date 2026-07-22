@@ -83,6 +83,14 @@ const products = [
     description: "Tangy mango with a warm chili kick for snack lovers.",
     imageUrl: momoPauImage,
   },
+      {
+    id: 9,
+    name: "Donation",
+    price: 1.99,
+    description: "Donation_test",
+    imageUrl: "",
+  },
+
 
 ];
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
