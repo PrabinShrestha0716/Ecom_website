@@ -494,6 +494,11 @@ async function startPayment() {
         },
 
         shippingMethod,
+        items: cart.map((item) => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+        })),
       }),
     });
 
@@ -1081,7 +1086,7 @@ onClick={()=>{
           <div className="quantity-controls">
             <button onClick={() => updateQuantity(item.id, -1)}>-</button>
             <span>{item.quantity}</span>
-            <button onClick={() => updateQuantity(item.id, 1)}>+</button>
+            <button disabled={item.quantity >= item.stock} onClick={() => updateQuantity(item.id, 1)}>+</button>
           </div>
 
           <strong>${(item.price * item.quantity).toFixed(2)}</strong>

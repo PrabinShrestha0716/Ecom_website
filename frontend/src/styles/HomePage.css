@@ -168,6 +168,21 @@ main {
   margin: 0;
 }
 
+.stock-label {
+  color: #39723d !important;
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-top: 3px !important;
+}
+
+.stock-label.out {
+  color: #b91c1c !important;
+}
+
+.stock-label.low {
+  color: #b45309 !important;
+}
+
 .card-footer {
   align-items: center;
   display: flex;
@@ -223,6 +238,12 @@ main {
   position: relative;
   overflow: hidden;
   transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.home-cart-actions > button:disabled {
+  background: #c9a27b;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 .home-cart-actions > button::before {

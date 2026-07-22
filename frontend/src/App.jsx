@@ -84,7 +84,7 @@ const products = [
     imageUrl: momoPauImage,
   },
       {
-    id: 9,
+    id: 10,
     name: "Donation",
     price: 1.99,
     description: "Donation_test",
@@ -99,10 +99,17 @@ function App() {
   const [activePage, setActivePage] = useState("home");
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [ownerToken, setOwnerToken] = useState(
-    localStorage.getItem("rangilaOwnerToken") || ""
-  );
-  const isOwner = Boolean(ownerToken);
+  const [inventory, setInventory] = useState({});
+  const [isOwner, setIsOwner] = useState(false);
+  const productsWithInventory = products.map((product) => ({
+    ...product,
+    stock: inventory[String(product.id)] ?? 0,
+  }));
+
+  useEffect(() => {
+    loadInventory();
+    checkOwnerSession();
+  }, []);
 
   useEffect(() => {
     function openOwnerPageFromHash() {
@@ -120,15 +127,17 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (activePage === "admin" && ownerToken) {
-      loadOrders(ownerToken);
+    if (activePage === "admin" && isOwner) {
+      loadOrders();
     }
-  }, [activePage, ownerToken]);
+  }, [activePage, isOwner]);
 
   function addToCart(product) {
+    if (product.stock <= 0) return;
     const existing = cart.find((item) => item.id === product.id);
 
     if (existing) {
+      if (existing.quantity >= product.stock) return;
       setCart(
         cart.map((item) =>
           item.id === product.id
@@ -147,7 +156,7 @@ function App() {
       cart
         .map((item) =>
           item.id === productId
-            ? { ...item, quantity: item.quantity + change }
+            ? { ...item, quantity: Math.min(item.stock, item.quantity + change) }
             : item
         )
         .filter((item) => item.quantity > 0)
@@ -183,6 +192,7 @@ function App() {
   async function loginOwner(password) {
     const response = await fetch(`${API_URL}/api/admin/login`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -193,38 +203,79 @@ function App() {
       return false;
     }
 
-    const data = await response.json();
-
-    localStorage.setItem("rangilaOwnerToken", data.token);
-    setOwnerToken(data.token);
-    await loadOrders(data.token);
+    setIsOwner(true);
+    await loadOrders();
     return true;
   }
 
-  function logoutOwner() {
-    localStorage.removeItem("rangilaOwnerToken");
-    setOwnerToken("");
+  async function logoutOwner() {
+    await fetch(`${API_URL}/api/admin/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+    setIsOwner(false);
     setOrders([]);
     setActivePage("home");
     window.location.hash = "";
   }
 
-  async function loadOrders(token = ownerToken) {
+  async function checkOwnerSession() {
+    const response = await fetch(`${API_URL}/api/admin/session`, {
+      credentials: "include",
+    });
+    setIsOwner(response.ok);
+  }
+
+  async function loadOrders() {
     const response = await fetch(`${API_URL}/api/admin/orders`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
     });
 
     if (!response.ok) {
-      localStorage.removeItem("rangilaOwnerToken");
-      setOwnerToken("");
+      setIsOwner(false);
       setOrders([]);
       return;
     }
 
     const savedOrders = await response.json();
     setOrders(savedOrders);
+  }
+
+  async function loadInventory() {
+    const response = await fetch(`${API_URL}/api/inventory`);
+    if (!response.ok) return;
+    const items = await response.json();
+    setInventory(Object.fromEntries(
+      items.map((item) => [String(item.productId), item.quantity])
+    ));
+  }
+
+  async function updateInventory(productId, quantity) {
+    const response = await fetch(`${API_URL}/api/admin/inventory/${productId}`, {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ quantity }),
+    });
+    if (!response.ok) throw new Error("Inventory could not be updated.");
+    setInventory((current) => ({ ...current, [String(productId)]: quantity }));
+  }
+
+  async function deleteOrder(orderId) {
+    const response = await fetch(`${API_URL}/api/admin/orders/${orderId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error("Order could not be deleted.");
+    }
+
+    setOrders((currentOrders) =>
+      currentOrders.filter((order) => String(order.id) !== String(orderId))
+    );
   }
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -240,7 +291,7 @@ function App() {
 
         <nav className="nav">
           {activePage === "admin" ? (
-            <button className="active">Placed Orders</button>
+            <button className="active">Admin</button>
           ) : (
             <>
               <button
@@ -275,7 +326,7 @@ function App() {
       <main>
         {activePage === "home" && (
           <HomePage
-            products={products}
+            products={productsWithInventory}
             cart={cart}
             addToCart={addToCart}
             updateQuantity={updateQuantity}
@@ -300,10 +351,13 @@ function App() {
         {activePage === "shipping-policy" && <LegalPage pageType="shipping-policy" />}
         {activePage === "admin" && (
           <AdminPage
+            products={productsWithInventory}
+            onUpdateInventory={updateInventory}
             orders={orders}
             isOwner={isOwner}
             loginOwner={loginOwner}
             logoutOwner={logoutOwner}
+            onDeleteOrder={deleteOrder}
           />
         )}
       </main>

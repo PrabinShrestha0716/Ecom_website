@@ -34,6 +34,7 @@ function HomePage({ products, cart, addToCart, updateQuantity }) {
           {products.map((product) => {
             const cartItem = cart.find((item) => item.id === product.id);
             const quantity = cartItem ? cartItem.quantity : 0;
+            const outOfStock = product.stock <= 0;
 
             return (
               <article className="card" key={product.id}>
@@ -48,16 +49,27 @@ function HomePage({ products, cart, addToCart, updateQuantity }) {
                   <p className="cart-note">In cart: {quantity}</p>
                 )}
                 <div className="card-footer">
-                  <strong>${product.price.toFixed(2)}</strong>
+                  <div>
+                    <strong>${product.price.toFixed(2)}</strong>
+                    {product.stock <= 2 && (
+                      <p className={outOfStock ? "stock-label out" : "stock-label low"}>
+                        {outOfStock
+                          ? "Out of stock"
+                          : `Only ${product.stock} left`}
+                      </p>
+                    )}
+                  </div>
                   <div className="home-cart-actions">
                     {quantity > 0 && (
                       <div className="home-quantity-controls">
-                        <button onClick={() => addToCart(product)}>+</button>
+                        <button disabled={quantity >= product.stock} onClick={() => addToCart(product)}>+</button>
                         <span>{quantity}</span>
                         <button onClick={() => updateQuantity(product.id, -1)}>-</button>
                       </div>
                     )}
-                    <button onClick={() => addToCart(product)}>Add to Cart</button>
+                    <button disabled={outOfStock || quantity >= product.stock} onClick={() => addToCart(product)}>
+                      {outOfStock ? "Out of Stock" : "Add to Cart"}
+                    </button>
                   </div>
                 </div>
               </article>
