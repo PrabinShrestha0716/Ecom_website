@@ -73,7 +73,7 @@ const products = [
     name: "Lapsi Jhol",
     price: 7.99,
     description: "Lapsi chunks with spicy jhol 🌶️🔥🤤🥵",
-    imageUrl: imlyJholImage,
+    imageUrl: lapsiJholImage,
   },
 
     {
@@ -353,7 +353,7 @@ function App() {
             goHome={() => setActivePage("home")}
           />
         )}
-        {activePage === "about" && <AboutPage />}
+        {activePage === "about" && <AboutPage goShop={() => setActivePage("home")} />}
         {activePage === "contact" && <ContactPage />}
         {activePage === "privacy-policy" && <LegalPage pageType="privacy-policy" />}
         {activePage === "terms-of-service" && <LegalPage pageType="terms-of-service" />}

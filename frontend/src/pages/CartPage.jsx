@@ -224,8 +224,8 @@ const STORE_STATE = "Texas";
 const STORE_ZIP = "76021";
 const DELIVERY_SHIPPING = {
   method: "delivery",
-  cost: 8.99,
-  label: "Delivery ($8.99)",
+  cost: 8.00,
+  label: "Shipping ($8.00)",
 };
 const PICKUP_SHIPPING = {
   method: "pickup",
@@ -718,9 +718,9 @@ onClick={()=>{
     return (
       <div className="shipping-summary-card">
         <div className="shipping-summary-header">
-          <h3>Pickup or Delivery</h3>
+          <h3>Pickup or Shipping</h3>
           <p className="shipping-summary-description">
-            Choose pickup to collect, or delivery for a flat $9 shipping fee.
+            Choose pickup to collect, or Shipping for a flat $8 shipping fee.
           </p>
         </div>
 
@@ -733,7 +733,7 @@ onClick={()=>{
             onChange={() => setShippingMethod("delivery")}
           />
           <span>
-            Delivery <strong>+$8.99
+            Shipping <strong>+$8.00
               
             </strong>
           </span>
@@ -807,7 +807,7 @@ onClick={()=>{
               <p className="section-note">
                 {shippingMethod === "pickup"
                   ? "Pickup selected, no address required."
-                  : "Delivery selected, please provide your address."}
+                  : "Shipping selected, please provide your address."}
               </p>
               {renderShippingFields()}
             </div>
