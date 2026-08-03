@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
+  ExpressCheckoutElement,
   PaymentElement,
   useStripe,
   useElements,
@@ -23,7 +24,86 @@ function PaymentStep({
   const elements = useElements();
 
   const [paymentElementReady, setPaymentElementReady] = useState(false);
+  const [applePayAvailable, setApplePayAvailable] = useState(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("card");
   const [elementError, setElementError] = useState("");
+
+  function getConfirmParams() {
+    return {
+      return_url: `${window.location.origin}/payment-success`,
+      payment_method_data: {
+        billing_details: {
+          name: checkoutForm.fullName,
+          phone: checkoutForm.phone,
+          address: {
+            line1: checkoutForm.streetAddress || STORE_PICKUP_ADDRESS,
+            line2: checkoutForm.apartment || undefined,
+            city: checkoutForm.city || STORE_CITY,
+            state: checkoutForm.state || STORE_STATE,
+            postal_code: checkoutForm.zipcode || STORE_ZIP,
+            country: "US",
+          },
+        },
+      },
+    };
+  }
+
+  async function finishPayment(paymentIntent) {
+    if (!paymentIntent) return;
+
+    if (paymentIntent.status === "succeeded") {
+      await onPaymentSuccess(paymentIntent);
+      return;
+    }
+
+    if (paymentIntent.status === "processing") {
+      onPaymentError(
+        "Your payment is processing. Please do not submit another payment."
+      );
+      return;
+    }
+
+    onPaymentError(
+      `Payment was not completed. Current status: ${paymentIntent.status}`
+    );
+  }
+
+  async function handleApplePayConfirm(event) {
+    if (!stripe || !elements || paymentProcessing) return;
+
+    onPaymentError("");
+    setElementError("");
+    onPaymentProcessing(true);
+
+    try {
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        redirect: "if_required",
+        confirmParams: getConfirmParams(),
+      });
+
+      if (error) {
+        const message = formatPaymentError(
+          error.message || "Apple Pay could not be completed."
+        );
+        event.paymentFailed({ reason: "fail", message });
+        onPaymentError(message);
+        return;
+      }
+
+      await finishPayment(paymentIntent);
+    } catch (error) {
+      const message = formatPaymentError(
+        error instanceof Error
+          ? error.message
+          : "An unexpected Apple Pay error occurred."
+      );
+      event.paymentFailed({ reason: "fail", message });
+      onPaymentError(message);
+    } finally {
+      onPaymentProcessing(false);
+    }
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -75,25 +155,7 @@ function PaymentStep({
          */
         redirect: "if_required",
 
-        confirmParams: {
-          return_url: `${window.location.origin}/payment-success`,
-
-          payment_method_data: {
-            billing_details: {
-              name: checkoutForm.fullName,
-              phone: checkoutForm.phone,
-
-              address: {
-                line1: checkoutForm.streetAddress || STORE_PICKUP_ADDRESS,
-                line2: checkoutForm.apartment || undefined,
-                city: checkoutForm.city || STORE_CITY,
-                state: checkoutForm.state || STORE_STATE,
-                postal_code: checkoutForm.zipcode || STORE_ZIP,
-                country: "US",
-              },
-            },
-          },
-        },
+        confirmParams: getConfirmParams(),
       });
 
       if (error) {
@@ -101,29 +163,7 @@ function PaymentStep({
         return;
       }
 
-      if (!paymentIntent) {
-        /*
-         * This generally means Stripe redirected the customer for
-         * authentication. The return page should verify the result.
-         */
-        return;
-      }
-
-      if (paymentIntent.status === "succeeded") {
-        await onPaymentSuccess(paymentIntent);
-        return;
-      }
-
-      if (paymentIntent.status === "processing") {
-        onPaymentError(
-          "Your payment is processing. Please do not submit another payment."
-        );
-        return;
-      }
-
-      onPaymentError(
-        `Payment was not completed. Current status: ${paymentIntent.status}`
-      );
+      await finishPayment(paymentIntent);
     } catch (error) {
       console.error("Stripe payment error:", error);
 
@@ -144,12 +184,77 @@ function PaymentStep({
       <div>
         <p className="eyebrow">Payment</p>
         <h2>Payment Method</h2>
-        <p className="section-note">
-          Enter your payment information securely through Stripe.
-        </p>
+        <p className="section-note">Choose Apple Pay or enter your card details.</p>
       </div>
 
-      <div className="card-element">
+      <fieldset className="payment-method-options">
+        <legend>Select a payment method</legend>
+        <label className={selectedPaymentMethod === "card" ? "payment-method-choice selected" : "payment-method-choice"}>
+          <input
+            type="radio"
+            name="payment-method"
+            value="card"
+            checked={selectedPaymentMethod === "card"}
+            onChange={() => setSelectedPaymentMethod("card")}
+          />
+          <span>
+            <strong>Credit or debit card</strong>
+            <small>Enter your card details securely through Stripe</small>
+          </span>
+        </label>
+        <label className={`${selectedPaymentMethod === "apple-pay" ? "payment-method-choice selected" : "payment-method-choice"}${applePayAvailable !== true ? " disabled" : ""}`}>
+          <input
+            type="radio"
+            name="payment-method"
+            value="apple-pay"
+            checked={selectedPaymentMethod === "apple-pay"}
+            disabled={applePayAvailable !== true}
+            onChange={() => setSelectedPaymentMethod("apple-pay")}
+          />
+          <span>
+            <strong>Apple Pay</strong>
+            <small>Pay quickly with a card saved in Apple Wallet</small>
+          </span>
+        </label>
+      </fieldset>
+
+      <section
+        className={selectedPaymentMethod === "apple-pay" ? "apple-pay-option" : "apple-pay-option payment-panel-hidden"}
+        aria-label="Apple Pay"
+        aria-hidden={selectedPaymentMethod !== "apple-pay"}
+      >
+        <h3>Pay with Apple Pay</h3>
+        <div className="apple-pay-element">
+          <ExpressCheckoutElement
+            onConfirm={handleApplePayConfirm}
+            onReady={(event) => {
+              const isAvailable = Boolean(event.availablePaymentMethods?.applePay);
+              setApplePayAvailable(isAvailable);
+              if (!isAvailable) setSelectedPaymentMethod("card");
+            }}
+            options={{
+              buttonHeight: 50,
+              buttonType: { applePay: "buy" },
+              paymentMethods: {
+                applePay: "always",
+                googlePay: "never",
+                link: "never",
+                amazonPay: "never",
+                paypal: "never",
+                klarna: "never",
+              },
+            }}
+          />
+        </div>
+      </section>
+
+      {applePayAvailable === false && (
+        <p className="apple-pay-unavailable" role="status">
+          Apple Pay is not available on this device or browser. Please enter your card information below.
+        </p>
+      )}
+
+      <div className={selectedPaymentMethod === "card" ? "card-element" : "card-element payment-panel-hidden"}>
         <PaymentElement
           onReady={() => {
             setPaymentElementReady(true);
@@ -173,6 +278,11 @@ function PaymentStep({
           }}
           options={{
             layout: "tabs",
+            wallets: {
+              applePay: "never",
+              googlePay: "never",
+              link: "never",
+            },
             fields: {
               billingDetails: {
                 name: "never",
@@ -196,6 +306,8 @@ function PaymentStep({
 
       <button
         type="submit"
+        className={selectedPaymentMethod === "card" ? "" : "payment-panel-hidden"}
+        aria-hidden={selectedPaymentMethod !== "card"}
         disabled={
           paymentProcessing ||
           !stripe ||
@@ -208,7 +320,7 @@ function PaymentStep({
           : `Pay $${orderTotal.toFixed(2)} & Place Order`}
       </button>
 
-      {!paymentElementReady && !elementError && (
+      {selectedPaymentMethod === "card" && !paymentElementReady && !elementError && (
         <p className="order-message">Loading secure payment form…</p>
       )}
     </form>

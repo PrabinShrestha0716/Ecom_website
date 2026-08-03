@@ -6,6 +6,7 @@ import lapsiJholImage from "./products/Lapsi.png";
 import lapsiCandyImage from "./products/lapsiCandy.png";
 import KhattuImage from "./products/Khattu.png";
 import BechiImage from "./products/bechi.PNG";
+import PiroBechiImage from "./products/PiroBechi.PNG";
 import MangoJholImage from "./products/mango.PNG";
 import NimbuImage from "./products/nimbu.PNG";
 import RangilaImage from "./products/Rangila.PNG";
@@ -39,8 +40,16 @@ const products = [
     description: "Salty and sour 🤤",
     imageUrl: BechiImage,
   },
-  {
+    {
     id: 4,
+    name: "Piro Bechi",
+    price: 6.99,
+    description: "Salty and spicy🔥🌶️",
+    imageUrl: PiroBechiImage,
+  },
+
+  {
+    id: 5,
     name: "Rangila",
     price: 6.99,
     description: "Rangila Brooo's ko RANGILA 😋🔥🌶️",
@@ -48,28 +57,28 @@ const products = [
   },
 
     {
-    id: 5,
+    id: 6,
     name: "Mango Jhol",
     price: 7.99,
     description: "Favorite among all, the flavor you simply cant resist.",
     imageUrl: MangoJholImage,
   },
   {
-    id: 6,
+    id: 7,
     name: "Imly Jhol",
     price: 7.99,
     description: "Tangy, spicy, and everything in between. That perfect Imli Jhol magic! 🌶️😋",
     imageUrl: imlyJholImage,
   },
   {
-    id: 7,
+    id: 8,
     name: "Nibuwa Jhol",
     price: 7.99,
     description: "Tangy, zesty, and 100% YETI-APPROVED! 🍋😋",
     imageUrl: NimbuImage,
   },
   {
-    id: 8,
+    id: 9,
     name: "Lapsi Jhol",
     price: 7.99,
     description: "Lapsi chunks with spicy jhol 🌶️🔥🤤🥵",
@@ -77,7 +86,7 @@ const products = [
   },
 
     {
-    id: 9,
+    id: 10,
     name: "MoMo pau",
     price: 8.99,
     description: "Made with lapsi, sugar, chili and lots of love from YETI",
