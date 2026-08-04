@@ -112,7 +112,8 @@ function App() {
   const [isOwner, setIsOwner] = useState(false);
   const productsWithInventory = products.map((product) => ({
     ...product,
-    stock: inventory[String(product.id)] ?? 0,
+    // null means inventory has not arrived yet; zero is confirmed out of stock.
+    stock: inventory[String(product.id)] ?? null,
   }));
 
   useEffect(() => {
@@ -142,11 +143,12 @@ function App() {
   }, [activePage, isOwner]);
 
   function addToCart(product) {
-    if (product.stock <= 0) return;
+    const stockIsKnown = product.stock !== null;
+    if (stockIsKnown && product.stock <= 0) return;
     const existing = cart.find((item) => item.id === product.id);
 
     if (existing) {
-      if (existing.quantity >= product.stock) return;
+      if (stockIsKnown && existing.quantity >= product.stock) return;
       setCart(
         cart.map((item) =>
           item.id === product.id
@@ -163,11 +165,16 @@ function App() {
   function updateQuantity(productId, change) {
     setCart(
       cart
-        .map((item) =>
-          item.id === productId
-            ? { ...item, quantity: Math.min(item.stock, item.quantity + change) }
-            : item
-        )
+        .map((item) => {
+          if (item.id !== productId) return item;
+          const nextQuantity = item.quantity + change;
+          return {
+            ...item,
+            quantity: item.stock === null
+              ? nextQuantity
+              : Math.min(item.stock, nextQuantity),
+          };
+        })
         .filter((item) => item.quantity > 0)
     );
   }
@@ -260,12 +267,17 @@ function App() {
   }
 
   async function loadInventory() {
-    const response = await fetch(`${API_URL}/api/inventory`);
-    if (!response.ok) return;
-    const items = await response.json();
-    setInventory(Object.fromEntries(
-      items.map((item) => [String(item.productId), item.quantity])
-    ));
+    try {
+      const response = await fetch(`${API_URL}/api/inventory`);
+      if (!response.ok) return;
+      const items = await response.json();
+      const loadedInventory = Object.fromEntries(
+        items.map((item) => [String(item.productId), item.quantity])
+      );
+      setInventory(loadedInventory);
+    } catch {
+      // Keep stock unknown and shopping available while the backend wakes up.
+    }
   }
 
   async function updateInventory(productId, quantity) {
