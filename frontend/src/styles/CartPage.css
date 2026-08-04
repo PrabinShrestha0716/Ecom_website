@@ -275,6 +275,97 @@
   margin-bottom: 22px;
 }
 
+.apple-pay-option {
+  background: #fff7ed;
+  border: 1px solid #f3d2a2;
+  border-radius: 14px;
+  display: grid;
+  gap: 12px;
+  padding: 18px 24px;
+}
+
+.payment-method-options {
+  border: 0;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+.payment-method-options legend {
+  color: #8a2f0a;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.payment-method-choice {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #f3d2a2;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.payment-method-choice.selected {
+  background: #fff7ed;
+  border-color: #8a2f0a;
+  box-shadow: 0 0 0 1px #8a2f0a;
+}
+
+.payment-method-choice.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.payment-method-choice input {
+  accent-color: #8a2f0a;
+  flex: 0 0 auto;
+  min-height: auto;
+  padding: 0;
+  width: auto;
+}
+
+.payment-method-choice span {
+  display: grid;
+  gap: 3px;
+}
+
+.payment-method-choice strong {
+  color: #3b1f0f;
+}
+
+.payment-method-choice small {
+  color: #70401f;
+  font-weight: 500;
+}
+
+.apple-pay-option h3 {
+  color: #3b1f0f;
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.apple-pay-unavailable {
+  background: #fff7ed;
+  border: 1px solid #f3d2a2;
+  border-radius: 10px;
+  color: #70401f;
+  font-size: 0.95rem;
+  margin: 0;
+  padding: 12px 14px;
+}
+
+.payment-panel-hidden {
+  left: -10000px !important;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute !important;
+  width: 1px !important;
+}
+
 .checkout-total {
   align-items: center;
   background: #fff7ed;

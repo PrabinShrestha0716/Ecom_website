@@ -55,6 +55,7 @@ const allowedOrigins = [
   "https://rangilabroo.netlify.app",
   "https://rangilabroo.com",
   "https://www.rangilabroo.com",
+  "http://192.168.1.97:5173",
 ];
 
 app.use(
@@ -308,8 +309,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Server error." });
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Backend running on http://192.168.1.97:${PORT}`);
   console.log(`Order storage: ${pool ? "PostgreSQL" : "JSON file"}`);
 });
 

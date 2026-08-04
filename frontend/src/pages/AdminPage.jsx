@@ -228,14 +228,14 @@ function InventoryManager({ products, onUpdateInventory }) {
           <div className="inventory-row" key={product.id}>
             <div>
               <strong>{product.name}</strong>
-              <small>{product.stock > 0 ? `${product.stock} currently available` : "Out of stock"}</small>
+              <small>{product.stock === null ? "Loading inventory..." : product.stock > 0 ? `${product.stock} currently available` : "Out of stock"}</small>
             </div>
             <input
               type="number"
               min="0"
               step="1"
               aria-label={`${product.name} stock`}
-              value={draft[product.id] ?? product.stock}
+              value={draft[product.id] ?? product.stock ?? ""}
               onChange={(event) => setDraft((current) => ({
                 ...current,
                 [product.id]: event.target.value,
