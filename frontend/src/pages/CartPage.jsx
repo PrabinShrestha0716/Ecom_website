@@ -452,7 +452,6 @@ useEffect(() => {
   const address = checkoutForm.streetAddress.trim();
 
   if (address.length < 3) {
-    setAddressSuggestions([]);
     return;
   }
 
@@ -509,6 +508,9 @@ useEffect(() => {
   const orderTotal = total + shippingInfo.cost;
 
   function updateCheckoutField(fieldName, value) {
+    if (fieldName === "streetAddress" && value.trim().length < 3) {
+      setAddressSuggestions([]);
+    }
     setCheckoutForm({
       ...checkoutForm,
       [fieldName]: value,
@@ -1011,7 +1013,7 @@ onClick={()=>{
       )
       .join("");
 
-    const createdAt = new Date(order.createdAt || Date.now()).toLocaleString();
+    const createdAt = new Date(order.createdAt).toLocaleString();
 
     return `<!doctype html>
 <html>

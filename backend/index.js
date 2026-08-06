@@ -19,16 +19,16 @@ const MAX_LOGIN_ATTEMPTS = 5;
 const adminSessions = new Map();
 const loginAttempts = new Map();
 const PRODUCT_CATALOG = new Map([
-  ["1", { name: "Lapsi Candy", price: 6.99 }],
-  ["2", { name: "Khattu", price: 6.99 }],
-  ["3", { name: "Bechi Nunilo", price: 6.99 }],
-  ["4", { name: "Rangila", price: 6.99 }],
-  ["5", { name: "Mango Jhol", price: 7.99 }],
-  ["6", { name: "Imly Jhol", price: 7.99 }],
-  ["7", { name: "Nibuwa Jhol", price: 7.99 }],
-  ["8", { name: "Lapsi Jhol", price: 7.99 }],
-  ["9", { name: "MoMo pau", price: 8.99 }],
-  ["10", { name: "Donation", price: 1.99 }],
+  ["1", { name: "Lapsi Candy", price: 5.99 }],
+  ["2", { name: "Khattu", price: 5.99 }],
+  ["3", { name: "Bechi Nunilo", price: 5.99 }],
+  ["4", { name: "Piro Bechi", price: 5.99 }],
+  ["5", { name: "Rangila", price: 5.99 }],
+  ["6", { name: "Mango Jhol", price: 6.99 }],
+  ["7", { name: "Imly Jhol", price: 6.99 }],
+  ["8", { name: "Nibuwa Jhol", price: 6.99 }],
+  ["9", { name: "Lapsi Jhol", price: 6.99 }],
+  ["10", { name: "MoMo pau", price: 7.99 }],
 ]);
 const DATABASE_URL = process.env.DATABASE_URL;
 const DATA_DIR = path.join(__dirname, "data");
@@ -279,6 +279,10 @@ app.get("/api/admin/inventory", requireOwner, async (req, res) => {
 app.put("/api/admin/inventory/:productId", requireOwner, async (req, res) => {
   const quantity = Number(req.body.quantity);
 
+  if (!PRODUCT_CATALOG.has(String(req.params.productId))) {
+    return res.status(404).json({ error: "Product not found." });
+  }
+
   if (!Number.isInteger(quantity) || quantity < 0) {
     return res.status(400).json({ error: "Quantity must be a non-negative whole number." });
   }
@@ -383,21 +387,17 @@ function validateOrder(order) {
     return "Order totals are required.";
   }
 
-  if (typeof order.subtotal !== "number" || typeof order.total !== "number") {
-  return "Order totals are required.";
-}
+  if (!order.payment || typeof order.payment !== "object") {
+    return "Payment information is required.";
+  }
 
-if (!order.payment || typeof order.payment !== "object") {
-  return "Payment information is required.";
-}
+  if (!String(order.payment.intentId || "").startsWith("pi_")) {
+    return "Valid payment intent ID is required.";
+  }
 
-if (!String(order.payment.intentId || "").startsWith("pi_")) {
-  return "Valid payment intent ID is required.";
-}
-
-if (order.payment.status !== "succeeded") {
-  return "Payment must be successful before the order is saved.";
-}
+  if (order.payment.status !== "succeeded") {
+    return "Payment must be successful before the order is saved.";
+  }
   return "";
 }
 
@@ -542,13 +542,13 @@ function priceCart(items, shippingMethod) {
     canonicalItems.push({ id: Number(productId), name: product.name, price: product.price, quantity });
   }
 
-  const shippingCents = shippingMethod === "delivery" ? 899 : 0;
+  const shippingCents = shippingMethod === "delivery" ? 800 : 0;
   return {
     items: canonicalItems,
     subtotalCents,
     totalCents: subtotalCents + shippingCents,
     shipping: shippingMethod === "delivery"
-      ? { method: "delivery", cost: 8.99, label: "Delivery ($8.99)" }
+      ? { method: "delivery", cost: 8, label: "Delivery ($8.00)" }
       : { method: "pickup", cost: 0, label: "Pickup at 1400 Sierra Spring Dr" },
   };
 }

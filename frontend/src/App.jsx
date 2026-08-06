@@ -117,11 +117,6 @@ function App() {
   }));
 
   useEffect(() => {
-    loadInventory();
-    checkOwnerSession();
-  }, []);
-
-  useEffect(() => {
     function openOwnerPageFromHash() {
       if (window.location.hash === "#owner") {
         setActivePage("admin");
@@ -135,12 +130,6 @@ function App() {
       window.removeEventListener("hashchange", openOwnerPageFromHash);
     };
   }, []);
-
-  useEffect(() => {
-    if (activePage === "admin" && isOwner) {
-      loadOrders();
-    }
-  }, [activePage, isOwner]);
 
   function addToCart(product) {
     const stockIsKnown = product.stock !== null;
@@ -196,11 +185,12 @@ function App() {
       body: JSON.stringify(order),
     });
 
+    const result = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error("Order could not be saved.");
+      throw new Error(result.error || "Order could not be saved.");
     }
 
-    const savedOrder = await response.json();
+    const savedOrder = result;
     setOrders((currentOrders) => [savedOrder, ...currentOrders]);
     return savedOrder;
   }
@@ -308,6 +298,19 @@ function App() {
       currentOrders.filter((order) => String(order.id) !== String(orderId))
     );
   }
+
+  useEffect(() => {
+    // These functions synchronize initial state with the backend asynchronously.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadInventory();
+    checkOwnerSession();
+  }, []);
+
+  useEffect(() => {
+    if (activePage === "admin" && isOwner) {
+      loadOrders();
+    }
+  }, [activePage, isOwner]);
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
