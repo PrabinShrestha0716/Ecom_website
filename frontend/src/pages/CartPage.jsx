@@ -1143,7 +1143,7 @@ onClick={()=>{
           <p className="eyebrow">Order Processed</p>
           <h1>Thank you, {placedOrder.customer.fullName}.</h1>
           <p>
-            We received your order.
+            We received your order. A team member from the Rangila bro will contact you shortly at the phone number you provided. 
           </p>
           <div className="checkout-total">
             <span>Order Total</span>
