@@ -5,6 +5,7 @@ const express = require("express");
 const fs = require("fs/promises");
 const path = require("path");
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 const { Pool } = require("pg");
 const Stripe = require("stripe");
 
@@ -41,6 +42,8 @@ const DEFAULT_INVENTORY = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((productId) => ({
 const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY)
   : null;
+
+const emailTransport = createEmailTransport();
 
 const pool = DATABASE_URL
   ? new Pool({
@@ -162,6 +165,14 @@ app.post("/api/orders", async (req, res) => {
     };
 
     await saveOrderWithInventory(savedOrder);
+
+    try {
+      await sendNewOrderEmail(savedOrder);
+    } catch (error) {
+      // The order is already paid and saved, so notification errors must not
+      // make checkout appear to have failed.
+      console.error("New order email error:", error);
+    }
 
     return res.status(201).json(savedOrder);
   } catch (error) {
@@ -317,6 +328,106 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`Backend running on http://192.168.1.97:${PORT}`);
   console.log(`Order storage: ${pool ? "PostgreSQL" : "JSON file"}`);
 });
+
+function createEmailTransport() {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT || 587);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!host || !user || !pass) {
+    console.warn(
+      "Order email notifications are disabled. Set SMTP_HOST, SMTP_USER, and SMTP_PASS to enable them."
+    );
+    return null;
+  }
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: String(process.env.SMTP_SECURE).toLowerCase() === "true",
+    auth: { user, pass },
+  });
+}
+
+async function sendNewOrderEmail(order) {
+  if (!emailTransport) return;
+
+  const recipient = process.env.ORDER_NOTIFICATION_EMAIL;
+  if (!recipient) {
+    console.warn(
+      "Order email notification skipped. Set ORDER_NOTIFICATION_EMAIL to the recipient address."
+    );
+    return;
+  }
+
+  const itemLines = order.items.map(
+    (item) => `${item.name} x ${item.quantity} — $${(item.price * item.quantity).toFixed(2)}`
+  );
+  const address = [
+    order.customer.streetAddress,
+    order.customer.apartment,
+    order.customer.city,
+    order.customer.state,
+    order.customer.zipcode,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const text = [
+    `New paid order #${order.id}`,
+    "",
+    `Customer: ${order.customer.fullName}`,
+    `Phone: ${order.customer.phone}`,
+    `Shipping: ${order.shipping.label}`,
+    `Address: ${address}`,
+    "",
+    ...itemLines,
+    "",
+    `Subtotal: $${order.subtotal.toFixed(2)}`,
+    `Shipping: $${order.shipping.cost.toFixed(2)}`,
+    `Total: $${order.total.toFixed(2)}`,
+    `Payment: ${order.payment.status}`,
+  ].join("\n");
+
+  const rows = order.items
+    .map(
+      (item) => `<tr><td>${escapeEmailHtml(item.name)}</td><td>${item.quantity}</td><td>$${(
+        item.price * item.quantity
+      ).toFixed(2)}</td></tr>`
+    )
+    .join("");
+  const html = `
+    <h1>New paid order #${escapeEmailHtml(order.id)}</h1>
+    <p><strong>Customer:</strong> ${escapeEmailHtml(order.customer.fullName)}</p>
+    <p><strong>Phone:</strong> ${escapeEmailHtml(order.customer.phone)}</p>
+    <p><strong>Shipping:</strong> ${escapeEmailHtml(order.shipping.label)}</p>
+    <p><strong>Address:</strong> ${escapeEmailHtml(address)}</p>
+    <table cellpadding="8" cellspacing="0" border="1">
+      <thead><tr><th>Item</th><th>Quantity</th><th>Amount</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p><strong>Subtotal:</strong> $${order.subtotal.toFixed(2)}<br>
+    <strong>Shipping:</strong> $${order.shipping.cost.toFixed(2)}<br>
+    <strong>Total:</strong> $${order.total.toFixed(2)}</p>
+  `;
+
+  await emailTransport.sendMail({
+    from: process.env.ORDER_NOTIFICATION_FROM || process.env.SMTP_USER,
+    to: recipient,
+    subject: `New paid order #${order.id} — $${order.total.toFixed(2)}`,
+    text,
+    html,
+  });
+}
+
+function escapeEmailHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
 function requireOwner(req, res, next) {
   const bearerSession = readBearerSession(req);
