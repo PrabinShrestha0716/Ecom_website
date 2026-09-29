@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { restoreCart, saveCart } from "./cartSession";
 import "./styles/App.css";
 import logoImage from "./assets/logo.png";
 import imlyJholImage from "./products/ImlyJhol.png";
@@ -7,7 +8,7 @@ import lapsiCandyImage from "./products/lapsiCandy.png";
 import KhattuImage from "./products/Khattu.png";
 import BechiImage from "./products/bechi.PNG";
 import PiroBechiImage from "./products/PiroBechi.PNG";
-import MangoJholImage from "./products/mango.PNG";
+import MangoJholImage from "./products/mango.png";
 import NimbuImage from "./products/nimbu.PNG";
 import RangilaImage from "./products/Rangila.PNG";
 import momoPauImage from "./products/momoPau.png";
@@ -17,6 +18,8 @@ import CartPage from "./pages/CartPage";
 import ContactPage from "./pages/ContactPage";
 import HomePage from "./pages/HomePage";
 import LegalPage from "./pages/LegalPage";
+import "./styles/FestivalTheme.css";
+import "./styles/Mobile.css";
 
 const products = [
   {
@@ -93,7 +96,11 @@ const products = [
     imageUrl: momoPauImage,
   },
 
-];
+].map((product) => ({
+  ...product,
+  originalPrice: product.price,
+  price: (Math.round(product.price * 100) - 100) / 100,
+}));
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 const ADMIN_SESSION_KEY = "admin_session_token";
 
@@ -106,7 +113,7 @@ function adminAuthHeaders(headers = {}) {
 
 function App() {
   const [activePage, setActivePage] = useState("home");
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => restoreCart(products));
   const [orders, setOrders] = useState([]);
   const [inventory, setInventory] = useState({});
   const [isOwner, setIsOwner] = useState(false);
@@ -115,6 +122,10 @@ function App() {
     // null means inventory has not arrived yet; zero is confirmed out of stock.
     stock: inventory[String(product.id)] ?? null,
   }));
+
+  useEffect(() => {
+    saveCart(cart);
+  }, [cart]);
 
   useEffect(() => {
     function openOwnerPageFromHash() {
@@ -265,6 +276,10 @@ function App() {
         items.map((item) => [String(item.productId), item.quantity])
       );
       setInventory(loadedInventory);
+      setCart((currentCart) => currentCart.map((item) => ({
+        ...item,
+        stock: loadedInventory[String(item.id)] ?? null,
+      })));
     } catch {
       // Keep stock unknown and shopping available while the backend wakes up.
     }
@@ -316,7 +331,12 @@ function App() {
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <div className="app">
+    <div className="app festival-theme">
+      <div className="festival-notice">
+        <span className="festival-mini-diya" aria-hidden="true" />
+        <span>Happy Dashain &amp; Tihar <span className="festival-notice-divider" aria-hidden="true">✦</span> <strong>upto 15 % off every pau</strong></span>
+        <span className="festival-mini-diya" aria-hidden="true" />
+      </div>
       <header className="site-header">
         <button className="brand" onClick={() => setActivePage("home")}>
           <img src={logoImage} alt="Rangila Brooo logo" />
@@ -398,6 +418,7 @@ function App() {
 
       <footer className="site-footer">
         <div>
+          <p className="festival-footer-wish">A little flavor. A little light. शुभकामना!</p>
           <p className="eyebrow">Follow the flavor</p>
           <h3>Rangila Brooo</h3>
           <p>Bold Nepali snack vibes, crafted for sharing and gifting.</p>

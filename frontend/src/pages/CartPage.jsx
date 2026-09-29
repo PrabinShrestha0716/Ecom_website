@@ -1193,7 +1193,11 @@ onClick={()=>{
 
             <div>
               <h3>{item.name}</h3>
-              <p>${item.price.toFixed(2)} each</p>
+              <p className="offer-price">
+                <del>${item.originalPrice.toFixed(2)}</del>
+                <strong>${item.price.toFixed(2)}</strong> each
+              </p>
+              <span className="offer-saving">Dashain and Tihar Promo applied </span>
             </div>
           </div>
 
