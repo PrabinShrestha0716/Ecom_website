@@ -1,0 +1,109 @@
+.festival-theme {
+  --festival-wine: #711e35;
+  --festival-gold: #d8b576;
+  --festival-border: #e8d8bf;
+  color: #614a40;
+  background: radial-gradient(ellipse at top right, #f3d89b20, transparent 45%), #fffbf5;
+}
+
+.festival-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 40px;
+  padding: 10px 18px;
+  background: #711e35;
+  color: #fff0d6;
+  font-size: 0.76rem;
+  line-height: 1.6;
+  text-align: center;
+  letter-spacing: 0.035em;
+}
+
+.festival-notice strong { color: #ffe0a0; font-weight: 600; }
+.festival-notice-divider { margin: 0 10px; color: #e6bd76; font-size: 0.6rem; }
+.festival-mini-diya { position: relative; flex: 0 0 16px; height: 7px; margin-top: 7px; border-radius: 0 0 12px 12px; background: #e6bd76; }
+.festival-mini-diya::before { content: ""; position: absolute; left: 6px; top: -9px; width: 5px; height: 7px; border-radius: 80% 0 60% 40%; transform: rotate(-35deg); background: #ffe7b5; }
+
+.festival-theme .site-header {
+  background: #fffbf5f2;
+  border-bottom: 1px solid var(--festival-border);
+  box-shadow: 0 4px 18px #711e3505;
+}
+
+.festival-theme .brand { color: var(--festival-wine); }
+.festival-theme .brand img { border-color: var(--festival-gold); }
+.festival-theme .nav button { border-color: var(--festival-border); color: var(--festival-wine); background: transparent; }
+.festival-theme .nav button.active,
+.festival-theme .nav button:hover { background: var(--festival-wine); color: #fff8ec; border-color: var(--festival-wine); box-shadow: 0 4px 12px #711e3510; }
+
+.festival-theme .eyebrow { color: var(--festival-wine); }
+.festival-theme .section-heading::after { content: ""; display: block; width: 38px; height: 2px; margin-top: 15px; background: var(--festival-gold); }
+.festival-theme .section-heading h1,
+.festival-theme .section-heading h2,
+.festival-theme .page > h1,
+.festival-theme .explore-intro h1 { color: var(--festival-wine); }
+
+.festival-theme .hero { background: linear-gradient(120deg, #fffdfa, #fbf1e3); border-color: var(--festival-border); box-shadow: 0 12px 36px #711e3508; }
+.festival-theme .hero h1 { color: var(--festival-wine); }
+.festival-theme .hero::before { display: none; }
+.festival-theme .card,
+.festival-theme .cart-item,
+.festival-theme .checkout-form,
+.festival-theme .checkout-card,
+.festival-theme .order-summary,
+.festival-theme .empty-cart,
+.festival-theme .order-confirmation,
+.festival-theme .owner-login,
+.festival-theme .admin-empty,
+.festival-theme .orders-table,
+.festival-theme .legal-card,
+.festival-theme .contact-placeholder {
+  border-color: var(--festival-border);
+  background-color: #fffefa;
+  box-shadow: 0 6px 22px #711e3506;
+}
+
+.festival-theme .cart-item,
+.festival-theme .checkout-form,
+.festival-theme .order-summary,
+.festival-theme .empty-cart,
+.festival-theme .owner-login { border-radius: 16px; }
+.festival-theme .order-summary { border-top: 3px solid var(--festival-gold); }
+.festival-theme .card h3,
+.festival-theme .cart-item h3,
+.festival-theme .order-summary h2,
+.festival-theme .checkout-form h2 { color: var(--festival-wine); }
+
+.festival-theme .home-cart-actions > button:not(:disabled),
+.festival-theme .checkout-button:not(:disabled),
+.festival-theme .payment-button:not(:disabled),
+.festival-theme .owner-login button:not(:disabled) { background: var(--festival-wine); color: #fff8ec; box-shadow: 0 4px 12px #711e3512; }
+
+.festival-cart-note { padding: 12px 14px; border: 1px solid #ecdbb8; border-radius: 10px; background: #fcf5e6; color: #711e35; font-size: 0.85rem; line-height: 1.5; font-weight: 600; }
+.festival-cart-note > span { color: #936725; margin-right: 5px; }
+.festival-cart-note small { display: block; margin-top: 4px; color: #715a45; font-weight: 400; font-size: 0.75rem; }
+
+.festival-theme .explore-story { background: #542031; }
+.festival-theme .explore-story .eyebrow { color: #efd098; }
+.festival-theme .site-footer { background: #f5ecdf; color: #614a40; border-top: 1px solid var(--festival-border); }
+.festival-theme .site-footer h3 { color: var(--festival-wine); }
+.festival-theme .site-footer a { color: var(--festival-wine); background: #fffaf2; border-color: var(--festival-border); }
+.festival-theme .site-footer a:hover { background: #eedfc8; }
+.festival-theme .site-footer .festival-footer-wish { color: var(--festival-wine); font-family: Georgia, serif; font-size: 1.05rem; margin-bottom: 18px; }
+
+@media (max-width: 480px) {
+  .festival-notice { gap: 10px; font-size: 0.68rem; padding-inline: 12px; }
+  .festival-notice-divider { margin-inline: 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .festival-theme *, .festival-theme *::before, .festival-theme *::after { animation: none !important; transition: none !important; }
+}
+
+@media print {
+  .festival-notice { display: none; }
+  .festival-theme { background: white; }
+}

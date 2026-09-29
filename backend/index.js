@@ -30,7 +30,12 @@ const PRODUCT_CATALOG = new Map([
   ["8", { name: "Nibuwa Jhol", price: 6.99 }],
   ["9", { name: "Lapsi Jhol", price: 6.99 }],
   ["10", { name: "MoMo pau", price: 7.99 }],
-]);
+].map(([id, product]) => [id, {
+  ...product,
+  originalPrice: product.price,
+  // Dashain Tihar Special Offer: $1 off every pack, including checkout.
+  price: (Math.round(product.price * 100) - 100) / 100,
+}]));
 const DATABASE_URL = process.env.DATABASE_URL;
 const DATA_DIR = path.join(__dirname, "data");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");

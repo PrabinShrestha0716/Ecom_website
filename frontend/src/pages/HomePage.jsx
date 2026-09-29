@@ -10,6 +10,23 @@ function HomePage({ products, cart, addToCart, updateQuantity }) {
 
   return (
     <>
+      <section className="festival-banner" aria-labelledby="festival-title">
+        <div className="festival-garland" aria-hidden="true" />
+        <div className="festival-copy">
+          <p className="festival-kicker">Rangila Brooo celebrates</p>
+          <h2 id="festival-title">Dashain <span>&</span> Tihar</h2>
+          <p className="festival-subtitle">Special Offer</p>
+          <p>Share the joy. Pass the pau. Celebrate with your favorite Nepali flavors.</p>
+          <p className="festival-wishes">Happy Dashain &amp; Tihar <span aria-hidden="true">✦</span> शुभकामना</p>
+          <small>Automatically applied to every pack. No code needed.</small>
+        </div>
+        <div className="festival-art">
+          <span className="festival-kite" aria-hidden="true" />
+          <span className="festival-kite festival-kite-small" aria-hidden="true" />
+          <div className="festival-savings"><span>FESTIVE TREAT</span><strong>UPTO 15% OFF</strong><span>EVERY PAU</span></div>
+          <div className="festival-diyas" aria-hidden="true"><i /><i /><i /></div>
+        </div>
+      </section>
       <section className="hero">
         <div>
           <p className="eyebrow">Authentic Nepali Titaura</p>
@@ -24,7 +41,7 @@ function HomePage({ products, cart, addToCart, updateQuantity }) {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section" id="featured-products">
         <div className="section-heading">
           <p className="eyebrow">Shop</p>
           <h2>Featured Products</h2>
@@ -51,7 +68,11 @@ function HomePage({ products, cart, addToCart, updateQuantity }) {
                 )}
                 <div className="card-footer">
                   <div>
-                    <strong>${product.price.toFixed(2)}</strong>
+                    <div className="offer-price">
+                      <del aria-label={`Original price $${product.originalPrice.toFixed(2)}`}>${product.originalPrice.toFixed(2)}</del>
+                      <strong aria-label={`Offer price $${product.price.toFixed(2)}`}>${product.price.toFixed(2)}</strong>
+                    </div>
+                    <span className="offer-saving"></span>
                     {stockIsKnown && product.stock <= 2 && (
                       <p className={outOfStock ? "stock-label out" : "stock-label low"}>
                         {outOfStock
