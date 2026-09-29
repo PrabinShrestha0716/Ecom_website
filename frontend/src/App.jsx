@@ -8,7 +8,7 @@ import lapsiCandyImage from "./products/lapsiCandy.png";
 import KhattuImage from "./products/Khattu.png";
 import BechiImage from "./products/bechi.PNG";
 import PiroBechiImage from "./products/PiroBechi.PNG";
-import MangoJholImage from "./products/mango.png";
+import MangoJholImage from "./products/mango.PNG";
 import NimbuImage from "./products/nimbu.PNG";
 import RangilaImage from "./products/Rangila.PNG";
 import momoPauImage from "./products/momoPau.png";
