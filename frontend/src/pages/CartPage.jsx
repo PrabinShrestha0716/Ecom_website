@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -9,6 +9,23 @@ import {
 } from "@stripe/react-stripe-js";
 import "../styles/CartPage.css";
 import logoImage from "../assets/logo.png";
+
+async function waitForPayment(stripe, clientSecret, initialIntent) {
+  let paymentIntent = initialIntent;
+  while (!paymentIntent || paymentIntent.status === "processing") {
+    if (paymentIntent) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    const result = await stripe.retrievePaymentIntent(clientSecret);
+    if (result.error) throw new Error(result.error.message || "Unable to verify payment.");
+    if (!result.paymentIntent) throw new Error("Unable to verify payment.");
+    paymentIntent = result.paymentIntent;
+  }
+  if (paymentIntent.status !== "succeeded") {
+    throw new Error(`Payment was not completed. Current status: ${paymentIntent.status}`);
+  }
+  return paymentIntent;
+}
 
 function PaymentStep({
   clientSecret,
@@ -30,7 +47,7 @@ function PaymentStep({
 
   function getConfirmParams() {
     return {
-      return_url: `${window.location.origin}/payment-success`,
+      return_url: `${window.location.origin}/?checkout=return`,
       payment_method_data: {
         billing_details: {
           name: checkoutForm.fullName,
@@ -49,23 +66,8 @@ function PaymentStep({
   }
 
   async function finishPayment(paymentIntent) {
-    if (!paymentIntent) return;
-
-    if (paymentIntent.status === "succeeded") {
-      await onPaymentSuccess(paymentIntent);
-      return;
-    }
-
-    if (paymentIntent.status === "processing") {
-      onPaymentError(
-        "Your payment is processing. Please do not submit another payment."
-      );
-      return;
-    }
-
-    onPaymentError(
-      `Payment was not completed. Current status: ${paymentIntent.status}`
-    );
+    const confirmedIntent = await waitForPayment(stripe, clientSecret, paymentIntent);
+    await onPaymentSuccess(confirmedIntent);
   }
 
   async function handleApplePayConfirm(event) {
@@ -328,6 +330,7 @@ function PaymentStep({
 }
 
 const STRIPE_PROMISE = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const PENDING_CHECKOUT_KEY = "pending_checkout";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 const GEOAPIFY_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY;
 const STORE_PICKUP_ADDRESS = "1400 Sierra Spring Dr";
@@ -437,6 +440,11 @@ function CartPage({
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [placedOrder, setPlacedOrder] = useState(null);
+  const [completionPending, setCompletionPending] = useState(() =>
+    new URLSearchParams(window.location.search).has("payment_intent_client_secret") ||
+    window.location.pathname === "/payment-success"
+  );
+  const savingOrder = useRef(false);
   const [checkoutForm, setCheckoutForm] = useState({
     fullName: "",
     streetAddress: "",
@@ -448,6 +456,26 @@ function CartPage({
   });
   const [checkoutError, setCheckoutError] = useState("");
   const [addressSuggestions, setAddressSuggestions] = useState([]);
+  async function recoverPayment() {
+    if (savingOrder.current) return;
+    setPaymentProcessing(true);
+    setCheckoutError("");
+    try {
+      const pending = JSON.parse(sessionStorage.getItem(PENDING_CHECKOUT_KEY) || "null");
+      const secret = new URLSearchParams(window.location.search).get("payment_intent_client_secret") || pending?.clientSecret;
+      if (!pending || !secret || secret !== pending.clientSecret) {
+        throw new Error("We could not restore your checkout details. Please contact the store to verify your payment before paying again.");
+      }
+      const stripe = await STRIPE_PROMISE;
+      if (!stripe) throw new Error("Payment verification is temporarily unavailable.");
+      const paymentIntent = await waitForPayment(stripe, secret);
+      await submitOrder(paymentIntent, pending.order);
+    } catch (error) {
+      setCheckoutError(error.message || "Unable to verify payment.");
+    } finally {
+      setPaymentProcessing(false);
+    }
+  }
 useEffect(() => {
   const address = checkoutForm.streetAddress.trim();
 
@@ -628,6 +656,16 @@ async function startPayment() {
       throw new Error("The payment server did not return a client secret.");
     }
 
+    sessionStorage.setItem(PENDING_CHECKOUT_KEY, JSON.stringify({
+      clientSecret: data.clientSecret,
+      order: {
+        customer: buildCustomerAddress(),
+        items: cart.map((item) => ({ ...item })),
+        shipping: shippingInfo,
+        subtotal: total,
+        total: orderTotal,
+      },
+    }));
     setClientSecret(data.clientSecret);
     setCheckoutStep(2);
   } catch (error) {
@@ -642,11 +680,13 @@ async function startPayment() {
     setPaymentProcessing(false);
   }
 }
-async function submitOrder(paymentIntent) {
-  if (orderSubmitted) {
+async function submitOrder(paymentIntent, restoredOrder) {
+  if (orderSubmitted || savingOrder.current) {
     return;
   }
 
+  savingOrder.current = true;
+  setCompletionPending(true);
   setCheckoutError("");
 
   const order = {
@@ -655,6 +695,7 @@ async function submitOrder(paymentIntent) {
     shipping: shippingInfo,
     subtotal: total,
     total: orderTotal,
+    ...restoredOrder,
 
     payment: {
       intentId: paymentIntent.id,
@@ -670,6 +711,12 @@ async function submitOrder(paymentIntent) {
     setPlacedOrder(savedOrder);
     setOrderSubmitted(true);
     clearCart();
+    try {
+      sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+      window.history.replaceState({}, "", window.location.pathname === "/payment-success" ? "/" : window.location.pathname);
+    } catch {
+      // The confirmed order remains visible even if browser storage is unavailable.
+    }
   } catch (error) {
     console.error("Order save error:", error);
 
@@ -679,10 +726,21 @@ async function submitOrder(paymentIntent) {
      */
     setCheckoutError(
       "Payment succeeded, but we could not save the order automatically. " +
-        `Payment reference: ${paymentIntent.id}`
+        `Please contact the store for assistance. Payment reference: ${paymentIntent.id}`
     );
+  } finally {
+    savingOrder.current = false;
   }
  }
+
+  const recoverReturnedPayment = useEffectEvent(async () => {
+    if (!completionPending) return;
+    await recoverPayment();
+  });
+  useEffect(() => {
+    const timer = setTimeout(() => { void recoverReturnedPayment(); }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   function openCheckout() {
     setIsCheckoutOpen(true);
@@ -1156,6 +1214,27 @@ onClick={()=>{
             <button onClick={goHome}>Continue Shopping</button>
           </div>
         </div>
+      </section>
+    );
+  }
+
+  if (completionPending) {
+    return (
+      <section className="page order-confirmation-page">
+        {checkoutError ? (
+          <div className="payment-error-overlay">
+            <div className="payment-error-dialog" role="alertdialog" aria-modal="true" aria-labelledby="payment-error-title" aria-describedby="payment-error-message">
+              <h2 id="payment-error-title">Unable to complete your order</h2>
+              <p id="payment-error-message">{checkoutError}</p>
+              <button autoFocus onClick={goHome}>Continue Shopping</button>
+            </div>
+          </div>
+        ) : (
+          <div className="payment-loading" role="status" aria-label="Loading">
+            <span className="payment-loading-spinner" aria-hidden="true" />
+            <span>Loading…</span>
+          </div>
+        )}
       </section>
     );
   }

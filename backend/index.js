@@ -105,11 +105,6 @@ app.post("/api/orders", async (req, res) => {
     const pricedOrder = priceCart(order.items, order.shipping?.method);
     if (pricedOrder.error) return res.status(400).json({ error: pricedOrder.error });
 
-    const stockError = await validateInventory(pricedOrder.items);
-    if (stockError) {
-      return res.status(409).json({ error: stockError });
-    }
-
     if (!stripe) {
       return res.status(500).json({
         error: "Stripe is not configured on the server.",
@@ -151,6 +146,11 @@ app.post("/api/orders", async (req, res) => {
       return res.status(200).json(duplicateOrder);
     }
 
+    const stockError = await validateInventory(pricedOrder.items);
+    if (stockError) {
+      return res.status(409).json({ error: stockError });
+    }
+
     const savedOrder = {
       customer: sanitizeCustomer(order.customer),
       items: pricedOrder.items,
@@ -171,13 +171,11 @@ app.post("/api/orders", async (req, res) => {
 
     await saveOrderWithInventory(savedOrder);
 
-    try {
-      await sendNewOrderEmail(savedOrder);
-    } catch (error) {
+    void sendNewOrderEmail(savedOrder).catch((error) => {
       // The order is already paid and saved, so notification errors must not
       // make checkout appear to have failed.
       console.error("New order email error:", error);
-    }
+    });
 
     return res.status(201).json(savedOrder);
   } catch (error) {
