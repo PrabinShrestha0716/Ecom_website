@@ -112,7 +112,12 @@ function adminAuthHeaders(headers = {}) {
 }
 
 function App() {
-  const [activePage, setActivePage] = useState("home");
+  const [activePage, setActivePage] = useState(() =>
+    window.location.pathname === "/payment-success" ||
+    new URLSearchParams(window.location.search).has("payment_intent_client_secret")
+      ? "cart"
+      : "home"
+  );
   const [cart, setCart] = useState(() => restoreCart(products));
   const [orders, setOrders] = useState([]);
   const [inventory, setInventory] = useState({});
