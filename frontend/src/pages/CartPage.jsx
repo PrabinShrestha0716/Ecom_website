@@ -10,6 +10,23 @@ import {
 import "../styles/CartPage.css";
 import logoImage from "../assets/logo.png";
 
+async function waitForPayment(stripe, clientSecret, initialIntent) {
+  let paymentIntent = initialIntent;
+  while (!paymentIntent || paymentIntent.status === "processing") {
+    if (paymentIntent) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    const result = await stripe.retrievePaymentIntent(clientSecret);
+    if (result.error) throw new Error(result.error.message || "Unable to verify payment.");
+    if (!result.paymentIntent) throw new Error("Unable to verify payment.");
+    paymentIntent = result.paymentIntent;
+  }
+  if (paymentIntent.status !== "succeeded") {
+    throw new Error(`Payment was not completed. Current status: ${paymentIntent.status}`);
+  }
+  return paymentIntent;
+}
+
 function PaymentStep({
   clientSecret,
   checkoutForm,
@@ -49,23 +66,8 @@ function PaymentStep({
   }
 
   async function finishPayment(paymentIntent) {
-    if (!paymentIntent) return;
-
-    if (paymentIntent.status === "succeeded") {
-      await onPaymentSuccess(paymentIntent);
-      return;
-    }
-
-    if (paymentIntent.status === "processing") {
-      onPaymentError(
-        "Your payment is processing. Please do not submit another payment."
-      );
-      return;
-    }
-
-    onPaymentError(
-      `Payment was not completed. Current status: ${paymentIntent.status}`
-    );
+    const confirmedIntent = await waitForPayment(stripe, clientSecret, paymentIntent);
+    await onPaymentSuccess(confirmedIntent);
   }
 
   async function handleApplePayConfirm(event) {
@@ -466,14 +468,10 @@ function CartPage({
       }
       const stripe = await STRIPE_PROMISE;
       if (!stripe) throw new Error("Payment verification is temporarily unavailable.");
-      const { error, paymentIntent } = await stripe.retrievePaymentIntent(secret);
-      if (error) throw new Error(error.message);
-      if (paymentIntent?.status !== "succeeded") {
-        throw new Error("Payment is not confirmed yet. Please check again before making another payment.");
-      }
+      const paymentIntent = await waitForPayment(stripe, secret);
       await submitOrder(paymentIntent, pending.order);
     } catch (error) {
-      setCheckoutError(error.message || "Unable to verify payment. Please check again.");
+      setCheckoutError(error.message || "Unable to verify payment.");
     } finally {
       setPaymentProcessing(false);
     }
@@ -728,7 +726,7 @@ async function submitOrder(paymentIntent, restoredOrder) {
      */
     setCheckoutError(
       "Payment succeeded, but we could not save the order automatically. " +
-        `Please retry saving below; you will not be charged again. Payment reference: ${paymentIntent.id}`
+        `Please contact the store for assistance. Payment reference: ${paymentIntent.id}`
     );
   } finally {
     savingOrder.current = false;
@@ -1223,12 +1221,20 @@ onClick={()=>{
   if (completionPending) {
     return (
       <section className="page order-confirmation-page">
-        <h1>Confirming your order</h1>
-        <p>Please do not make another payment.</p>
-        {checkoutError && <p role="alert">{checkoutError}</p>}
-        <button disabled={paymentProcessing} onClick={recoverPayment}>
-          {paymentProcessing ? "Checking your order…" : "Check payment and retry saving order"}
-        </button>
+        {checkoutError ? (
+          <div className="payment-error-overlay">
+            <div className="payment-error-dialog" role="alertdialog" aria-modal="true" aria-labelledby="payment-error-title" aria-describedby="payment-error-message">
+              <h2 id="payment-error-title">Unable to complete your order</h2>
+              <p id="payment-error-message">{checkoutError}</p>
+              <button autoFocus onClick={goHome}>Continue Shopping</button>
+            </div>
+          </div>
+        ) : (
+          <div className="payment-loading" role="status" aria-label="Loading">
+            <span className="payment-loading-spinner" aria-hidden="true" />
+            <span>Loading…</span>
+          </div>
+        )}
       </section>
     );
   }
